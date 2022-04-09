@@ -1,0 +1,214 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:pos_admin/components/progress_loading.dart';
+import 'package:pos_admin/components/side_menu.dart';
+import 'package:pos_admin/screens/dashboard/components/inventory_expense_card.dart';
+import 'package:pos_admin/screens/dashboard/components/selling_card.dart';
+import 'package:pos_admin/screens/dashboard/components/summary_card.dart';
+import 'package:pos_admin/screens/dashboard/dasboard_bloc.dart';
+import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
+import 'package:pos_admin/screens/dashboard/dashboard_state.dart';
+import 'package:pos_admin/screens/email/email_screen.dart';
+import 'package:pos_admin/screens/main/components/email_card.dart';
+import 'package:pos_admin/services/responses/product_response.dart';
+import 'package:pos_admin/services/responses/summary_response.dart';
+import 'package:pos_admin/utils/my_snackbar.dart';
+import 'package:pos_admin/utils/screen_utils.dart';
+import 'package:websafe_svg/websafe_svg.dart';
+import 'package:pos_admin/models/Email.dart';
+
+import '../../../constants.dart';
+import '../../../responsive.dart';
+
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+class DashboardScreen extends StatefulWidget {
+  // Press "Command + ."
+  const DashboardScreen({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _DashboardScreenState createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late TextEditingController dateController;
+  late DateTime selectedDate;
+  late DashboardBloc bloc;
+  bool _summaryIsLoading = true;
+  bool _sellingIsLoading = true;
+  SummaryResponse? _summaryResponse;
+  List<ProductItem> _productResponse = [];
+
+  @override
+  void initState() {
+    super.initState();
+    bloc = BlocProvider.of<DashboardBloc>(context);
+    var today = DateTime.now();
+    selectedDate = today;
+    var formattedDate = DateFormat("dd MMM yyyy").format(today);
+    dateController = TextEditingController(
+        text: formattedDate
+    );
+    getData();
+  }
+
+  void getData(){
+    bloc.add(GetSummary(selectedDate));
+    bloc.add(GetSelling(selectedDate));
+  }
+
+  void blocListener(BuildContext context, DashboardState state) async {
+    if (state is GetSummaryLoading) {
+      setState(() {
+        _summaryIsLoading = true;
+      });
+    } else if (state is GetSellingLoading) {
+      setState(() {
+        _sellingIsLoading = true;
+      });
+    } else if (state is GetSummarySuccess) {
+      /*
+        Get summary
+       */
+      setState(() {
+        _summaryIsLoading = false;
+        _summaryResponse = state.items;
+      });
+    } else if (state is GetSellingSuccess) {
+      /*
+        Get selling
+       */
+      setState(() {
+        _sellingIsLoading = false;
+        _productResponse = state.items;
+      });
+    }  else if (state is InitialState) {
+      setState(() {
+        _summaryIsLoading = true;
+        _sellingIsLoading = true;
+      });
+    } else if (state is FailedState) {
+      setState(() {
+        _summaryIsLoading = false;
+        _sellingIsLoading = false;
+      });
+      if (state.code == 401) {
+        MySnackbar(context)
+            .errorSnackbar("Sesi anda habis, silahkan login ulang");
+        // ScreenUtils(context).navigateTo(LoginPage(), replaceScreen: true);
+        return;
+      }
+      MySnackbar(context)
+          .errorSnackbar(state.message + " : " + state.code.toString());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: _scaffoldKey,
+      drawer: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 250),
+        child: const SideMenu(),
+      ),
+      body : BlocListener<DashboardBloc, DashboardState>(
+        child: Container(
+          padding: EdgeInsets.only(top: kDefaultPadding),
+          color: kBgDarkColor,
+          child: SafeArea(
+            right: false,
+            child: Column(
+              children: [
+                // This is our Seearch bar
+                Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: kDefaultPadding),
+                  child: Row(
+                    children: [
+                      // Once user click the menu icon the menu shows like drawer
+                      // Also we want to hide this menu icon on desktop
+                      if (!Responsive.isDesktop(context))
+                        IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () {
+                            _scaffoldKey.currentState?.openDrawer();
+                          },
+                        ),
+                      if (!Responsive.isDesktop(context)) const SizedBox(width: 5),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate, // Refer step 1
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2030),
+                            );
+                            if (picked != null && picked != selectedDate) {
+                              setState(() {
+                                selectedDate = picked;
+                                var formattedDate = DateFormat("dd MMM yyyy").format(selectedDate);
+                                dateController = TextEditingController(
+                                    text: formattedDate
+                                );
+                                getData();
+                              });
+                            }
+                          },
+                          child: TextField(
+                            enabled: false,
+                            controller: dateController,
+                            onChanged: (value) {},
+                            decoration: const InputDecoration(
+                              hintText: "Tanggal",
+                              fillColor: kBgLightColor,
+                              filled: true,
+                              suffixIcon: Padding(
+                                padding: EdgeInsets.all(
+                                    kDefaultPadding * 0.75), //15
+                                child: Icon(
+                                  Icons.calendar_today, size: 24,
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: kDefaultPadding),
+                Expanded(
+                  child: _summaryIsLoading ? ProgressLoading() :  RefreshIndicator(
+                    onRefresh: () async {
+                      getData();
+                    },
+                    child: ListView(
+                      children: [
+                        SummaryCard(summaryResponse: _summaryResponse,),
+                        InventoryExpense(),
+                        if(_sellingIsLoading) ProgressLoading() else
+                        SellingCard(productResponse: _productResponse,)
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        listener: blocListener,
+      )
+    );
+  }
+}
