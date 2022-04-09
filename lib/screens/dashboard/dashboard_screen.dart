@@ -5,6 +5,8 @@ import 'package:pos_admin/components/progress_loading.dart';
 import 'package:pos_admin/components/side_menu.dart';
 import 'package:pos_admin/screens/dashboard/components/inventory_expense_card.dart';
 import 'package:pos_admin/screens/dashboard/components/selling_card.dart';
+import 'package:pos_admin/screens/dashboard/components/stock_cup_spices_card.dart';
+import 'package:pos_admin/screens/dashboard/components/stock_milk_card.dart';
 import 'package:pos_admin/screens/dashboard/components/summary_card.dart';
 import 'package:pos_admin/screens/dashboard/dasboard_bloc.dart';
 import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
@@ -12,6 +14,7 @@ import 'package:pos_admin/screens/dashboard/dashboard_state.dart';
 import 'package:pos_admin/screens/email/email_screen.dart';
 import 'package:pos_admin/screens/main/components/email_card.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
+import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
 import 'package:pos_admin/utils/my_snackbar.dart';
 import 'package:pos_admin/utils/screen_utils.dart';
@@ -42,8 +45,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late DashboardBloc bloc;
   bool _summaryIsLoading = true;
   bool _sellingIsLoading = true;
+  bool _stockIsLoading = true;
   SummaryResponse? _summaryResponse;
   List<ProductItem> _productResponse = [];
+  StockResponse? _stockResponse;
 
   @override
   void initState() {
@@ -61,6 +66,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void getData(){
     bloc.add(GetSummary(selectedDate));
     bloc.add(GetSelling(selectedDate));
+    bloc.add(GetStocks(selectedDate));
+  }
+
+  void resetData(){
+    setState(() {
+      _summaryResponse = null;
+      _productResponse = [];
+      _stockResponse = null;
+    });
   }
 
   void blocListener(BuildContext context, DashboardState state) async {
@@ -71,6 +85,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else if (state is GetSellingLoading) {
       setState(() {
         _sellingIsLoading = true;
+      });
+    }else if (state is GetStockLoading) {
+      setState(() {
+        _stockIsLoading = true;
       });
     } else if (state is GetSummarySuccess) {
       /*
@@ -88,6 +106,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _sellingIsLoading = false;
         _productResponse = state.items;
       });
+    }else if (state is GetStockSuccess) {
+      /*
+        Get stocks
+       */
+      setState(() {
+        _stockIsLoading = false;
+        _stockResponse = state.stockResponse;
+      });
     }  else if (state is InitialState) {
       setState(() {
         _summaryIsLoading = true;
@@ -97,6 +123,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _summaryIsLoading = false;
         _sellingIsLoading = false;
+        resetData();
       });
       if (state.code == 401) {
         MySnackbar(context)
@@ -198,7 +225,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         SummaryCard(summaryResponse: _summaryResponse,),
                         InventoryExpense(),
                         if(_sellingIsLoading) ProgressLoading() else
-                        SellingCard(productResponse: _productResponse,)
+                        SellingCard(productResponse: _productResponse,),
+                        if(_stockIsLoading) ProgressLoading() else
+                          StockMilkCard(stockResponse: _stockResponse,),
+                        if(_stockIsLoading) ProgressLoading() else
+                          StockCupSpicesCard(stockResponse: _stockResponse, isCup : true),
+                        if(_stockIsLoading) ProgressLoading() else
+                          StockCupSpicesCard(stockResponse: _stockResponse, isCup : false),
                       ],
                     ),
                   ),

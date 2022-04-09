@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:pos_admin/services/responses/stock_response.dart';
+
 ProductResponse productResponseFromJson(String str) => ProductResponse.fromJson(json.decode(str));
 
 
@@ -42,6 +44,18 @@ class ProductItem {
   Type? type;
   int? price;
   String? sold;
+  int? left;
+  int? stock;
+
+  CupsItem toCupItem(){
+    return CupsItem(
+      stock: stock.toString(),
+      sold: sold,
+      lefts: left.toString(),
+      itemId: id,
+      name : name
+    );
+  }
 
   factory ProductItem.fromJson(Map<String, dynamic> json) => ProductItem(
     id: json["id"],

@@ -18,3 +18,11 @@ class GetSelling extends DasboardEvent {
   GetSelling(this.date);
 }
 
+class GetStocks extends DasboardEvent {
+  DateTime date;
+  @override
+  List<Object> get props => [];
+
+  GetStocks(this.date);
+}
+

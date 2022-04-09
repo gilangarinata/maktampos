@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pos_admin/components/progress_loading.dart';
 import 'package:uc_pdfview/uc_pdfview.dart';
 
 class PDFScreen extends StatefulWidget {
@@ -8,16 +12,56 @@ class PDFScreen extends StatefulWidget {
 
   PDFScreen({Key? key, this.path}) : super(key: key);
 
+  @override
   _PDFScreenState createState() => _PDFScreenState();
 }
 
-class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
+class _PDFScreenState extends State<PDFScreen> {
+
+  String remotePDFpath = "";
   final Completer<PDFViewController> _controller =
   Completer<PDFViewController>();
   int? pages = 0;
   int? currentPage = 0;
   bool isReady = false;
   String errorMessage = '';
+  bool isLoading = true;
+
+
+  @override
+  void initState() {
+    super.initState();
+    createFileOfPdfUrl().then((f) {
+      setState(() {
+        remotePDFpath = f.path;
+        isLoading = false;
+      });
+    });
+  }
+
+
+  Future<File> createFileOfPdfUrl() async {
+    Completer<File> completer = Completer();
+    print("Start download file from internet!");
+    try {
+      final url = widget.path ?? "";
+      final filename = DateTime.now().microsecond.toString();
+      var request = await HttpClient().getUrl(Uri.parse(url));
+      var response = await request.close();
+      var bytes = await consolidateHttpClientResponseBytes(response);
+      var dir = await getApplicationDocumentsDirectory();
+      print("Download files");
+      print("${dir.path}/$filename");
+      File file = File("${dir.path}/$filename");
+      await file.writeAsBytes(bytes, flush: true);
+      completer.complete(file);
+    } catch (e) {
+      throw Exception('Error parsing asset file!');
+    }
+
+    return completer.future;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -27,14 +71,16 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.share),
-            onPressed: () {},
+            onPressed: () {
+
+            },
           ),
         ],
       ),
-      body: Stack(
+      body: isLoading ? ProgressLoading() : Stack(
         children: <Widget>[
           UCPDFView(
-            filePath: widget.path,
+            filePath: remotePDFpath,
             enableSwipe: true,
             swipeHorizontal: true,
             autoSpacing: false,
@@ -104,3 +150,5 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
     );
   }
 }
+
+

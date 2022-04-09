@@ -21,9 +21,9 @@ class SummaryResponse {
 
   factory SummaryResponse.fromJson(Map<String, dynamic> json) => SummaryResponse(
     date: DateTime.parse(json["date"]),
-    totalFund: json["totalFund"],
-    totalExpense: json["totalExpense"],
-    totalIncome: json["totalIncome"],
+    totalFund: int.tryParse(json["totalFund"] ?? "0"),
+    totalExpense: int.tryParse(json["totalExpense"] ?? "0"),
+    totalIncome: int.tryParse(json["totalIncome"] ?? "0"),
     balance: json["balance"],
     urlExcel: json["urlExcel"],
   );

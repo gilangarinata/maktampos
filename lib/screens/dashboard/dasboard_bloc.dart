@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
+import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
 import 'package:pos_admin/services/repository/dashboard_repository.dart';
 
@@ -33,7 +34,18 @@ class DashboardBloc extends Bloc<DasboardEvent, DashboardState> {
         List<ProductItem> items = await repository.getSellings(formattedDate);
         yield GetSellingSuccess(items: items);
       } catch (e) {
-        yield FailedState("GetSummary Failed: ${e.toString()} ",0);
+        yield FailedState("Get selling Failed: ${e.toString()} ",0);
+      }
+    }
+
+    if (event is GetStocks) {
+      try {
+        yield GetStockLoading();
+        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
+        StockResponse item = await repository.getStocks(formattedDate);
+        yield GetStockSuccess(stockResponse: item);
+      } catch (e) {
+        yield FailedState("Get stock Failed: ${e.toString()} ",0);
       }
     }
   }

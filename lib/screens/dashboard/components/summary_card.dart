@@ -50,7 +50,7 @@ class SummaryCard extends StatelessWidget {
                       ),
                       IconButton(onPressed: (){
                         ScreenUtils(context).navigateTo(PDFScreen(path: summaryResponse?.urlExcel ?? "",));
-                      }, icon: Icon(Icons.download))
+                      }, icon: Icon(Icons.download, color: MyColors.primary,))
                     ],
                   ),
                   Divider(height: 30,),

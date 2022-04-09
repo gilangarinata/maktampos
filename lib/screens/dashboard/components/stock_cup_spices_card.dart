@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pos_admin/models/Email.dart';
 import 'package:pos_admin/res/my_colors.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
+import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/utils/number_utils.dart';
 import 'package:pos_admin/utils/screen_utils.dart';
 import 'package:websafe_svg/websafe_svg.dart';
@@ -11,13 +12,14 @@ import '../../../constants.dart';
 import '../../../extensions.dart';
 import '../../pdf_viewer.dart';
 
-class SellingCard extends StatelessWidget {
-  const SellingCard({
-    Key? key, this.press, required this.productResponse
+class StockCupSpicesCard extends StatelessWidget {
+  const StockCupSpicesCard({
+    Key? key, this.press, required this.stockResponse, required this.isCup
   }) : super(key: key);
 
   final VoidCallback? press;
-  final List<ProductItem> productResponse;
+  final StockResponse? stockResponse;
+  final bool isCup;
 
   Widget buildTableHeader(BuildContext context){
     return Column(
@@ -26,7 +28,7 @@ class SellingCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    "Data Penjualan",
+                    isCup ? "Laporan Stok Cup" : "Laporan Stok Bumbu",
                     style: Theme.of(context).textTheme.caption?.copyWith(
                         color: MyColors.grey_90,
                         fontSize: 16,
@@ -34,15 +36,18 @@ class SellingCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                IconButton(onPressed: (){
+                  ScreenUtils(context).navigateTo(PDFScreen(path: isCup ? stockResponse?.cups?.url ?? "" : stockResponse?.spices?.url ?? "",));
+                }, icon: Icon(Icons.download, color: MyColors.primary,))
               ],
             ),
             SizedBox(height: 20,),
             Row(
               children: [
                 Expanded(
-                  flex: 3,
+                  flex: 1,
                   child: Text(
-                    "Produk",
+                    isCup ? "Cup" : "Bumbu",
                     style: Theme.of(context).textTheme.caption?.copyWith(
                         color: MyColors.grey_80,
                         fontSize: 14,
@@ -51,9 +56,9 @@ class SellingCard extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: Text(
-                    "Kategori",
+                    "Stok",
                     style: Theme.of(context).textTheme.caption?.copyWith(
                         color: MyColors.grey_80,
                         fontSize: 14,
@@ -62,13 +67,24 @@ class SellingCard extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: Text(
-                    "Penjualan",
+                    "Terjual",
                     style: Theme.of(context).textTheme.caption?.copyWith(
                         color: MyColors.grey_80,
                         fontSize: 14,
-                      fontWeight: FontWeight.bold
+                        fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Sisa",
+                    style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: MyColors.grey_80,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold
                     ),
                   ),
                 ),
@@ -79,36 +95,52 @@ class SellingCard extends StatelessWidget {
     );
   }
 
-  List<Widget> generateSellingWidget(BuildContext context){
-    List<Widget> sellingItems = productResponse.map((selling) => Column(
+  List<Widget> generateStockWidget(BuildContext context){
+    var items = isCup ? stockResponse?.cups?.items : stockResponse?.spices?.items;
+    List<Widget> stockItems = items?.map((item) => Column(
       children: [
         Row(
           children: [
             Expanded(
-              flex: 3,
+              flex: 1,
               child: Text(
-                selling.name  ?? "",
+                item.name  ?? "",
                 style: Theme.of(context).textTheme.caption?.copyWith(
                     color: MyColors.grey_80,
                     fontSize: 14
                 ),
               ),
             ),
+
             Expanded(
-              flex: 2,
-              child: Text(
-                selling.categoryName  ?? "",
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                    color: MyColors.grey_80,
-                    fontSize: 14
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
+              flex: 1,
               child: Center(
                 child: Text(
-                  selling.sold ?? "0",
+                  item.stock ?? "0",
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: MyColors.grey_80,
+                      fontSize: 14
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Text(
+                  item.sold ?? "0",
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: MyColors.grey_80,
+                      fontSize: 14
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Text(
+                  item.lefts ?? "0",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14
@@ -122,19 +154,9 @@ class SellingCard extends StatelessWidget {
       ],
     )).toList() ?? [];
 
-    sellingItems.insert(0,buildTableHeader(context));
-    return sellingItems;
+    stockItems.insert(0,buildTableHeader(context));
+    return stockItems;
   }
-
-  // bool isDescending = true;
-  //
-  // void sortSelling(){
-  //   if(isDescending){
-  //     // var sortedSelling = productResponse.sort((a,b) => int.tryParse(a.sold ?? "0")?.compareTo(other) );
-  //   }else{
-  //
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +174,7 @@ class SellingCard extends StatelessWidget {
           ),
           child: Container(
             child: Column(
-              children: generateSellingWidget(context),
+              children: generateStockWidget(context),
             ),
           ),
         ).addNeumorphism(

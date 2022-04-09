@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
+import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
 
 
@@ -60,6 +61,27 @@ class GetSellingSuccess extends DashboardState {
 
 class GetSellingLoading extends DashboardState {
   GetSellingLoading();
+
+  @override
+  List<Object> get props => [];
+}
+
+
+/*
+  Get stock Data
+*/
+
+class GetStockSuccess extends DashboardState {
+  final StockResponse stockResponse;
+
+  GetStockSuccess({required this.stockResponse});
+
+  @override
+  List<Object?> get props => [stockResponse];
+}
+
+class GetStockLoading extends DashboardState {
+  GetStockLoading();
 
   @override
   List<Object> get props => [];
