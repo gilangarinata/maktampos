@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_admin/models/Email.dart';
 import 'package:pos_admin/res/my_colors.dart';
-import 'package:pos_admin/res/var_constants.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/utils/number_utils.dart';
@@ -14,13 +13,19 @@ import '../../../constants.dart';
 import '../../../extensions.dart';
 import '../../pdf_viewer.dart';
 
-class StockMilkCard extends StatelessWidget {
-  const StockMilkCard({
+class MaterialCard extends StatelessWidget {
+  const MaterialCard({
     Key? key, this.press, required this.stockResponse
   }) : super(key: key);
 
   final VoidCallback? press;
   final StockResponse? stockResponse;
+
+  static const int SUSU_DATANG_ITEM_ID = 25;
+  static const int SISA_KEMARIN_MENTAH_ITEM_ID = 26;
+  static const int SISA_KEMARIN_MATANG_ITEM_ID = 27;
+  static const int SISA_MATANG_ITEM_ID = 28;
+  static const int SISA_MENTAH_ITEM_ID = 29;
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +107,7 @@ class StockMilkCard extends StatelessWidget {
                       child: Text(
                         stockResponse?.milk
                             ?.items
-                            ?.firstWhereOrNull((element) => element.itemId == VarConstants.SUSU_DATANG_ITEM_ID)
+                            ?.firstWhereOrNull((element) => element.itemId == SUSU_DATANG_ITEM_ID)
                             ?.stock ?? "0",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
@@ -130,7 +135,7 @@ class StockMilkCard extends StatelessWidget {
                       child: Text(
                         stockResponse?.milk
                             ?.items
-                            ?.firstWhereOrNull((element) => element.itemId == VarConstants.SISA_KEMARIN_MENTAH_ITEM_ID)
+                            ?.firstWhereOrNull((element) => element.itemId == SISA_KEMARIN_MENTAH_ITEM_ID)
                             ?.stock ?? "0",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
@@ -158,7 +163,7 @@ class StockMilkCard extends StatelessWidget {
                       child: Text(
                         stockResponse?.milk
                             ?.items
-                            ?.firstWhereOrNull((element) => element.itemId == VarConstants.SISA_KEMARIN_MATANG_ITEM_ID)
+                            ?.firstWhereOrNull((element) => element.itemId == SISA_KEMARIN_MATANG_ITEM_ID)
                             ?.stock ?? "0",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
@@ -186,7 +191,7 @@ class StockMilkCard extends StatelessWidget {
                       child: Text(
                           stockResponse?.milk
                               ?.items
-                              ?.firstWhereOrNull((element) => element.itemId == VarConstants.SISA_MATANG_ITEM_ID)
+                              ?.firstWhereOrNull((element) => element.itemId == SISA_MATANG_ITEM_ID)
                               ?.stock ?? "0",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
@@ -214,7 +219,7 @@ class StockMilkCard extends StatelessWidget {
                       child: Text(
                           stockResponse?.milk
                               ?.items
-                              ?.firstWhereOrNull((element) => element.itemId == VarConstants.SISA_MENTAH_ITEM_ID)
+                              ?.firstWhereOrNull((element) => element.itemId == SISA_MENTAH_ITEM_ID)
                               ?.stock ?? "0",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,

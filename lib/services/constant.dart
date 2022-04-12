@@ -12,6 +12,8 @@ class Constant {
   static const String products = "/api/v1/admin/master-data/items";
   static const String selling = "/api/v1/admin/dashboard/selling";
   static const String stock = "/api/v1/admin/dashboard/stock";
+  static const String materialItem = "/api/v1/admin/master-data/materials";
+  static const String materialData = "/api/v1/admin/dashboard/materials";
 
   static const String baseUrl = "http://api.susumaktam.com";
   static const String login = "/login";

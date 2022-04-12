@@ -126,16 +126,6 @@ class SellingCard extends StatelessWidget {
     return sellingItems;
   }
 
-  // bool isDescending = true;
-  //
-  // void sortSelling(){
-  //   if(isDescending){
-  //     // var sortedSelling = productResponse.sort((a,b) => int.tryParse(a.sold ?? "0")?.compareTo(other) );
-  //   }else{
-  //
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     //  Here the shadow is not showing properly

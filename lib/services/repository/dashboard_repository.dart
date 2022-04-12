@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:pos_admin/res/var_constants.dart';
 import 'package:pos_admin/services/responses/login_response.dart';
+import 'package:pos_admin/services/responses/material_item_response.dart';
+import 'package:pos_admin/services/responses/material_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/selling_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
@@ -16,12 +19,12 @@ abstract class DashboardRepository {
   Future<SummaryResponse?> getSummary(String date);
   Future<List<ProductItem>> getSellings(String date);
   Future<StockResponse> getStocks(String date);
+  Future<List<MaterialItem>> getMaterials(String date);
 }
 
 class DashboardRepositoryImpl extends DashboardRepository {
   final Dio _dioClient;
-  int CATAEGORY_ID_SPICES = 22;
-  int CATEGORY_ID_CUPS = 21;
+
 
   DashboardRepositoryImpl(this._dioClient);
 
@@ -154,8 +157,8 @@ class DashboardRepositoryImpl extends DashboardRepository {
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
         var stockResponse = StockResponse.fromJson(response.data);
-        var cupItems = productItems?.where((element) => element.categoryId == CATEGORY_ID_CUPS);
-        var spicesItems = productItems?.where((element) => element.categoryId == CATAEGORY_ID_SPICES);
+        var cupItems = productItems?.where((element) => element.categoryId == VarConstants.CATEGORY_ID_CUPS);
+        var spicesItems = productItems?.where((element) => element.categoryId == VarConstants.CATEGORY_ID_SPICES);
         cupItems?.forEach((cupItem) {
           var stockItem = stockResponse.cups?.items?.firstWhereOrNull((element) => element.itemId == cupItem.id);
           cupItem.stock = int.tryParse(stockItem?.stock ?? "") ?? 0;
@@ -184,6 +187,56 @@ class DashboardRepositoryImpl extends DashboardRepository {
           ),
         );
 
+        return newStockResponse;
+      } else {
+        print("get selling failed");
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<List<MaterialItem>> getMaterials(String date) async {
+    try {
+      final response = await _dioClient.get(Constant.materialItem,);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var materialResponse = MaterialItemResponse.fromJson(response.data)
+            .items;
+        return await getMaterialData(date, materialResponse);
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      print("gilang" + statusMessage);
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<List<MaterialItem>> getMaterialData(String date, List<MaterialItem>? materialItems) async {
+    try {
+      final response = await _dioClient.get(Constant.materialData,
+        queryParameters: {
+          "date" : date
+        },);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var stockResponse = List<MaterialResponse>.from(response.data.map((e) => MaterialResponse.fromJson(e)));
+        materialItems.forEach((element) {
+          if()
+        });
         return newStockResponse;
       } else {
         print("get selling failed");
