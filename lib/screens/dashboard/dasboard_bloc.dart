@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
+import 'package:pos_admin/services/responses/material_item_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
@@ -44,6 +45,28 @@ class DashboardBloc extends Bloc<DasboardEvent, DashboardState> {
         var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
         StockResponse item = await repository.getStocks(formattedDate);
         yield GetStockSuccess(stockResponse: item);
+      } catch (e) {
+        yield FailedState("Get stock Failed: ${e.toString()} ",0);
+      }
+    }
+
+    if (event is GetMaterials) {
+      try {
+        yield GetMaterialLoading();
+        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
+        List<MaterialItem> item = await repository.getMaterials(formattedDate);
+        yield GetMaterialSuccess(materialItems: item);
+      } catch (e) {
+        yield FailedState("Get stock Failed: ${e.toString()} ",0);
+      }
+    }
+
+    if (event is GetInventory) {
+      try {
+        yield GetInventoryLoading();
+        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
+        List<MaterialItem> item = await repository.getInventory(formattedDate);
+        yield GetInventorySuccess(materialItems: item);
       } catch (e) {
         yield FailedState("Get stock Failed: ${e.toString()} ",0);
       }

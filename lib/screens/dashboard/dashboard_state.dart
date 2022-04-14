@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_admin/services/responses/material_item_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
@@ -82,6 +83,49 @@ class GetStockSuccess extends DashboardState {
 
 class GetStockLoading extends DashboardState {
   GetStockLoading();
+
+  @override
+  List<Object> get props => [];
+}
+
+
+
+/*
+  Get material Data
+*/
+
+class GetMaterialSuccess extends DashboardState {
+  final List<MaterialItem> materialItems;
+
+  GetMaterialSuccess({required this.materialItems});
+
+  @override
+  List<Object?> get props => [materialItems];
+}
+
+class GetMaterialLoading extends DashboardState {
+  GetMaterialLoading();
+
+  @override
+  List<Object> get props => [];
+}
+
+
+/*
+  Get inventory
+*/
+
+class GetInventorySuccess extends DashboardState {
+  final List<MaterialItem> materialItems;
+
+  GetInventorySuccess({required this.materialItems});
+
+  @override
+  List<Object?> get props => [materialItems];
+}
+
+class GetInventoryLoading extends DashboardState {
+  GetInventoryLoading();
 
   @override
   List<Object> get props => [];

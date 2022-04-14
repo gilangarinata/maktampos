@@ -33,6 +33,12 @@ class MaterialItem {
   DateTime? createdAt;
   DateTime? updatedAt;
   dynamic? deletedAt;
+  String? stock;
+  String? added;
+
+  int? inventoryStock;
+  int? takenByOutlets;
+  int? left;
 
   factory MaterialItem.fromJson(Map<String, dynamic> json) => MaterialItem(
     id: json["id"],

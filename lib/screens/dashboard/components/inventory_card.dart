@@ -14,8 +14,8 @@ import '../../../constants.dart';
 import '../../../extensions.dart';
 import '../../pdf_viewer.dart';
 
-class MaterialCard extends StatelessWidget {
-  const MaterialCard({
+class InventoryCard extends StatelessWidget {
+  const InventoryCard({
     Key? key, this.press, required this.materialItems
   }) : super(key: key);
 
@@ -29,7 +29,7 @@ class MaterialCard extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                "Laporan Material",
+                "Gudang",
                 style: Theme.of(context).textTheme.caption?.copyWith(
                     color: MyColors.grey_90,
                     fontSize: 16,
@@ -56,7 +56,7 @@ class MaterialCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                "Stok",
+                "Input Barang",
                 style: Theme.of(context).textTheme.caption?.copyWith(
                     color: MyColors.grey_80,
                     fontSize: 14,
@@ -67,7 +67,29 @@ class MaterialCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                "Tambah",
+                "Stok Gudang",
+                style: Theme.of(context).textTheme.caption?.copyWith(
+                    color: MyColors.grey_80,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                "Diambil Outlet",
+                style: Theme.of(context).textTheme.caption?.copyWith(
+                    color: MyColors.grey_80,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                "Sisa Barang",
                 style: Theme.of(context).textTheme.caption?.copyWith(
                     color: MyColors.grey_80,
                     fontSize: 14,
@@ -99,11 +121,16 @@ class MaterialCard extends StatelessWidget {
             ),
             Expanded(
               flex: 2,
-              child: Text(
-                item.stock  ?? "0",
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                    color: MyColors.grey_80,
-                    fontSize: 14
+              child: TextField(
+                onChanged: (value) {},
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  fillColor: kBgLightColor,
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    // borderSide: BorderSide.,
+                  ),
                 ),
               ),
             ),
@@ -111,7 +138,31 @@ class MaterialCard extends StatelessWidget {
               flex: 2,
               child: Center(
                 child: Text(
-                  item.added ?? "0",
+                  (item.inventoryStock ?? 0).toString(),
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: MyColors.grey_80,
+                      fontSize: 14
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Center(
+                child: Text(
+                  (item.takenByOutlets ?? 0).toString(),
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: MyColors.grey_80,
+                      fontSize: 14
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Center(
+                child: Text(
+                  (item.left ?? 0).toString(),
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14
@@ -126,7 +177,35 @@ class MaterialCard extends StatelessWidget {
     )).toList() ?? [];
 
     items.insert(0,buildTableHeader(context));
+    items.add(buildSaveButton());
     return items;
+  }
+
+  Widget buildSaveButton(){
+    return Column(
+      children: [
+        FlatButton.icon(
+          minWidth: double.infinity,
+          height: 10,
+          padding: const EdgeInsets.symmetric(
+            vertical: kDefaultPadding,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          color: kPrimaryColor,
+          onPressed: () {},
+          icon: WebsafeSvg.asset("assets/Icons/Edit.svg", width: 16),
+          label: const Text(
+            "Simpan",
+            style: TextStyle(color: Colors.white),
+          ),
+        ).addNeumorphism(
+          topShadowColor: Colors.white,
+          bottomShadowColor: const Color(0xFF234395).withOpacity(0.2),
+        ),
+      ],
+    );
   }
 
 

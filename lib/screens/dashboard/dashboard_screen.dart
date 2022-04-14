@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_admin/components/progress_loading.dart';
 import 'package:pos_admin/components/side_menu.dart';
+import 'package:pos_admin/screens/dashboard/components/inventory_card.dart';
 import 'package:pos_admin/screens/dashboard/components/inventory_expense_card.dart';
+import 'package:pos_admin/screens/dashboard/components/material_card.dart';
 import 'package:pos_admin/screens/dashboard/components/selling_card.dart';
 import 'package:pos_admin/screens/dashboard/components/stock_cup_spices_card.dart';
 import 'package:pos_admin/screens/dashboard/components/stock_milk_card.dart';
@@ -13,6 +15,7 @@ import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
 import 'package:pos_admin/screens/dashboard/dashboard_state.dart';
 import 'package:pos_admin/screens/email/email_screen.dart';
 import 'package:pos_admin/screens/main/components/email_card.dart';
+import 'package:pos_admin/services/responses/material_item_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
@@ -46,9 +49,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _summaryIsLoading = true;
   bool _sellingIsLoading = true;
   bool _stockIsLoading = true;
+  bool _materialIsLoading = true;
+  bool _inventoryIsLoadng = true;
   SummaryResponse? _summaryResponse;
   List<ProductItem> _productResponse = [];
   StockResponse? _stockResponse;
+  List<MaterialItem> _materialItems = [];
+  List<MaterialItem> _inventoryItems = [];
 
   @override
   void initState() {
@@ -67,6 +74,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bloc.add(GetSummary(selectedDate));
     bloc.add(GetSelling(selectedDate));
     bloc.add(GetStocks(selectedDate));
+    bloc.add(GetMaterials(selectedDate));
+    bloc.add(GetInventory(selectedDate));
   }
 
   void resetData(){
@@ -74,6 +83,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _summaryResponse = null;
       _productResponse = [];
       _stockResponse = null;
+      _materialItems = [];
+      _inventoryItems = [];
     });
   }
 
@@ -89,6 +100,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }else if (state is GetStockLoading) {
       setState(() {
         _stockIsLoading = true;
+      });
+    }else if (state is GetMaterialLoading) {
+      setState(() {
+        _materialIsLoading = true;
+      });
+    }else if (state is GetInventoryLoading) {
+      setState(() {
+        _inventoryIsLoadng = true;
       });
     } else if (state is GetSummarySuccess) {
       /*
@@ -113,6 +132,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _stockIsLoading = false;
         _stockResponse = state.stockResponse;
+      });
+    }else if (state is GetMaterialSuccess) {
+      /*
+        Get materials
+       */
+      setState(() {
+        _materialIsLoading = false;
+        _materialItems = state.materialItems;
+      });
+    }else if (state is GetInventorySuccess) {
+      /*
+        Get inventories
+       */
+      setState(() {
+        _inventoryIsLoadng = false;
+        _inventoryItems = state.materialItems;
       });
     }  else if (state is InitialState) {
       setState(() {
@@ -232,6 +267,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           StockCupSpicesCard(stockResponse: _stockResponse, isCup : true),
                         if(_stockIsLoading) ProgressLoading() else
                           StockCupSpicesCard(stockResponse: _stockResponse, isCup : false),
+                        if(_materialIsLoading) ProgressLoading() else
+                          MaterialCard(materialItems : _materialItems),
+                        if(_inventoryIsLoadng) ProgressLoading() else
+                          InventoryCard(materialItems : _inventoryItems),
                       ],
                     ),
                   ),
