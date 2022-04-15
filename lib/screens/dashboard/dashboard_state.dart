@@ -131,3 +131,21 @@ class GetInventoryLoading extends DashboardState {
   List<Object> get props => [];
 }
 
+/*
+  update inventory
+*/
+
+class UpdateInventorySuccess extends DashboardState {
+  UpdateInventorySuccess();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class UpdateInventoryLoading extends DashboardState {
+  UpdateInventoryLoading();
+
+  @override
+  List<Object> get props => [];
+}
+

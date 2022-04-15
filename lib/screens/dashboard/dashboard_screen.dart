@@ -15,6 +15,7 @@ import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
 import 'package:pos_admin/screens/dashboard/dashboard_state.dart';
 import 'package:pos_admin/screens/email/email_screen.dart';
 import 'package:pos_admin/screens/main/components/email_card.dart';
+import 'package:pos_admin/services/param/inventory_param.dart';
 import 'package:pos_admin/services/responses/material_item_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
@@ -50,12 +51,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _sellingIsLoading = true;
   bool _stockIsLoading = true;
   bool _materialIsLoading = true;
-  bool _inventoryIsLoadng = true;
+  bool _updateInventoryLoading = false;
   SummaryResponse? _summaryResponse;
   List<ProductItem> _productResponse = [];
   StockResponse? _stockResponse;
   List<MaterialItem> _materialItems = [];
   List<MaterialItem> _inventoryItems = [];
+
+  //params
+  List<InventoryParam> _inventoryParams = [];
 
   @override
   void initState() {
@@ -107,7 +111,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     }else if (state is GetInventoryLoading) {
       setState(() {
-        _inventoryIsLoadng = true;
+        // _inventoryIsLoadng = true;
+      });
+    }else if (state is UpdateInventoryLoading) {
+      setState(() {
+        _updateInventoryLoading = true;
       });
     } else if (state is GetSummarySuccess) {
       /*
@@ -146,9 +154,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Get inventories
        */
       setState(() {
-        _inventoryIsLoadng = false;
+        // _inventoryIsLoadng = false;
         _inventoryItems = state.materialItems;
       });
+    }else if (state is UpdateInventorySuccess) {
+      /*
+        update inventories
+       */
+      setState(() {
+        _updateInventoryLoading = false;
+      });
+      bloc.add(GetInventory(selectedDate));
     }  else if (state is InitialState) {
       setState(() {
         _summaryIsLoading = true;
@@ -269,8 +285,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           StockCupSpicesCard(stockResponse: _stockResponse, isCup : false),
                         if(_materialIsLoading) ProgressLoading() else
                           MaterialCard(materialItems : _materialItems),
-                        if(_inventoryIsLoadng) ProgressLoading() else
-                          InventoryCard(materialItems : _inventoryItems),
+                        InventoryCard(materialItems : _inventoryItems, onValueChanges: (value, item){
+                          _inventoryParams.removeWhere((element) => element.materialId == item.id);
+                          _inventoryParams.add(
+                            InventoryParam(
+                                item.id,
+                                DateFormat("yyyy-MM-dd").format(selectedDate),
+                                value)
+                          );
+                        },
+                          savePressed: () async {
+                            await Future.forEach(_inventoryParams, (element) async {
+                              bloc.add(UpdateInventory(element as InventoryParam));
+                            });
+                            _inventoryParams.clear();
+                          },
+                            updateLoading: _updateInventoryLoading,
+                          ),
                       ],
                     ),
                   ),

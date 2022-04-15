@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:pos_admin/res/var_constants.dart';
+import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/responses/base_response.dart';
 import 'package:pos_admin/services/responses/inventory_response.dart';
 import 'package:pos_admin/services/responses/login_response.dart';
 import 'package:pos_admin/services/responses/material_item_response.dart';
@@ -22,6 +24,7 @@ abstract class DashboardRepository {
   Future<StockResponse> getStocks(String date);
   Future<List<MaterialItem>> getMaterials(String date);
   Future<List<MaterialItem>> getInventory(String date);
+  Future<bool> updateInventory(InventoryParam param);
 }
 
 class DashboardRepositoryImpl extends DashboardRepository {
@@ -295,6 +298,29 @@ class DashboardRepositoryImpl extends DashboardRepository {
           element.left = material?.leftOver;
         });
         return materialItems ?? [];
+      } else {
+        print("get selling failed");
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> updateInventory(InventoryParam param) async {
+    try {
+      final response = await _dioClient.post(Constant.inventory,
+      data: param.toMap());
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var baseResponse = BaseResponse.fromJson(response.data);
+        return baseResponse.success ?? false;
       } else {
         print("get selling failed");
         throw ClientErrorException(statusMessage, statusCode);

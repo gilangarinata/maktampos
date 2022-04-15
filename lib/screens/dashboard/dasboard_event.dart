@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pos_admin/services/param/inventory_param.dart';
 
 abstract class DasboardEvent extends Equatable {}
 
@@ -40,6 +41,14 @@ class GetInventory extends DasboardEvent {
   List<Object> get props => [];
 
   GetInventory(this.date);
+}
+
+class UpdateInventory extends DasboardEvent {
+  InventoryParam param;
+  @override
+  List<Object> get props => [];
+
+  UpdateInventory(this.param);
 }
 
 

@@ -71,5 +71,19 @@ class DashboardBloc extends Bloc<DasboardEvent, DashboardState> {
         yield FailedState("Get stock Failed: ${e.toString()} ",0);
       }
     }
+
+    if (event is UpdateInventory) {
+      try {
+        yield UpdateInventoryLoading();
+        bool isSuccess = await repository.updateInventory(event.param);
+        if(isSuccess) {
+          yield UpdateInventorySuccess();
+        } else {
+          yield FailedState("gagal update",0);
+        }
+      } catch (e) {
+        yield FailedState("Get stock Failed: ${e.toString()} ",0);
+      }
+    }
   }
 }
