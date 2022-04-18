@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pos_admin/screens/dashboard/dasboard_bloc.dart';
 import 'package:pos_admin/screens/main/main_screen.dart';
+import 'package:pos_admin/screens/product/product_bloc.dart';
 import 'package:pos_admin/services/dio_client.dart';
 import 'package:pos_admin/services/repository/dashboard_repository.dart';
+import 'package:pos_admin/services/repository/product_repository.dart';
 
 void main() {
   Alice alice = Alice();
@@ -14,6 +16,11 @@ void main() {
           BlocProvider<DashboardBloc>(
             create: (context) => DashboardBloc(
               DashboardRepositoryImpl(DioClient().init(alice)),
+            ),
+          ),
+          BlocProvider<ProductBloc>(
+            create: (context) => ProductBloc(
+              ProductRepositoryImpl(DioClient().init(alice)),
             ),
           ),
         ],

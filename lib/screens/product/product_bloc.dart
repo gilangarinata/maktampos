@@ -1,89 +1,132 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_admin/screens/dashboard/dasboard_event.dart';
-import 'package:pos_admin/services/responses/material_item_response.dart';
+import 'package:pos_admin/screens/product/product_event.dart';
+import 'package:pos_admin/screens/product/product_state.dart';
+import 'package:pos_admin/services/repository/product_repository.dart';
+import 'package:pos_admin/services/responses/category_response.dart';
+import 'package:pos_admin/services/responses/subcategory_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
-import 'package:pos_admin/services/responses/stock_response.dart';
-import 'package:pos_admin/services/responses/summary_response.dart';
-import 'package:pos_admin/services/repository/dashboard_repository.dart';
 
-import 'dashboard_state.dart';
+class ProductBloc extends Bloc<ProductEvent, ProductState> {
+  ProductRepository repository;
 
-
-class DashboardBloc extends Bloc<DasboardEvent, DashboardState> {
-  DashboardRepository repository;
-
-  DashboardBloc(this.repository) : super(InitialState());
+  ProductBloc(this.repository) : super(InitialState());
 
   @override
-  Stream<DashboardState> mapEventToState(DasboardEvent event) async* {
-    if (event is GetSummary) {
+  Stream<ProductState> mapEventToState(ProductEvent event) async* {
+    if (event is GetProducts) {
       try {
-        yield GetSummaryLoading();
-        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
-        SummaryResponse? items = await repository.getSummary(formattedDate);
-        yield GetSummarySuccess(items: items);
+        yield GetProductLoading();
+        List<ProductItem>? items = await repository.getProducts();
+        yield GetProductSuccess(items: items);
       } catch (e) {
-        yield FailedState("GetSummary Failed: ",0);
+        yield FailedState("Gagal mengambil list produk, silahkan refresh ulang. ",0);
       }
     }
 
-    if (event is GetSelling) {
+    if (event is GetSubcategories) {
       try {
-        yield GetSellingLoading();
-        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
-        List<ProductItem> items = await repository.getSellings(formattedDate);
-        yield GetSellingSuccess(items: items);
+        yield GetSubcategoryLoading();
+        List<SubcategoryItem>? items = await repository.getSubcategories();
+        yield GetSubategoriesSuccess(items: items);
       } catch (e) {
-        yield FailedState("Get selling Failed: ${e.toString()} ",0);
+        yield FailedState("Gagal mengambil list kategori produk, silahkan refresh ulang. ",0);
       }
     }
 
-    if (event is GetStocks) {
+    if (event is CreateProduct) {
       try {
-        yield GetStockLoading();
-        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
-        StockResponse item = await repository.getStocks(formattedDate);
-        yield GetStockSuccess(stockResponse: item);
-      } catch (e) {
-        yield FailedState("Get stock Failed: ${e.toString()} ",0);
-      }
-    }
-
-    if (event is GetMaterials) {
-      try {
-        yield GetMaterialLoading();
-        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
-        List<MaterialItem> item = await repository.getMaterials(formattedDate);
-        yield GetMaterialSuccess(materialItems: item);
-      } catch (e) {
-        yield FailedState("Get stock Failed: ${e.toString()} ",0);
-      }
-    }
-
-    if (event is GetInventory) {
-      try {
-        yield GetInventoryLoading();
-        var formattedDate = DateFormat("yyyy-MM-dd").format(event.date);
-        List<MaterialItem> item = await repository.getInventory(formattedDate);
-        yield GetInventorySuccess(materialItems: item);
-      } catch (e) {
-        yield FailedState("Get stock Failed: ${e.toString()} ",0);
-      }
-    }
-
-    if (event is UpdateInventory) {
-      try {
-        yield UpdateInventoryLoading();
-        bool isSuccess = await repository.updateInventory(event.param);
-        if(isSuccess) {
-          yield UpdateInventorySuccess();
-        } else {
-          yield FailedState("gagal update",0);
+        yield CreateProductLoading();
+        bool isSuccess = await repository.createProduct(event.productParam);
+        if(isSuccess){
+          yield CreateProductSuccess();
+        }else{
+          yield FailedState("Gagal menambahkan produk, silahkan buat ulang.",1);
         }
       } catch (e) {
-        yield FailedState("Get stock Failed: ${e.toString()} ",0);
+        yield FailedState("Gagal menambahkan produk, silahkan buat ulang.",2);
       }
     }
+
+    if (event is UpdateProduct) {
+      try {
+        yield CreateProductLoading();
+        bool isSuccess = await repository.updateProduct(event.productParam);
+        if(isSuccess){
+          yield CreateProductSuccess();
+        }else{
+          yield FailedState("Gagal edit produk, silahkan edit ulang.",1);
+        }
+      } catch (e) {
+        yield FailedState("Gagal edit produk, silahkan edit ulang.",2);
+      }
+    }
+
+    if (event is DeleteProduct) {
+      try {
+        yield DeleteProductLoading();
+        bool isSuccess = await repository.deleteProduct(event.id);
+        if(isSuccess){
+          yield CreateProductSuccess();
+        }else{
+          yield FailedState("Gagal menghapus produk, silahkan hapus ulang.",1);
+        }
+      } catch (e) {
+        yield FailedState("Gagal menghapus produk, silahkan hapus ulang. ",2);
+      }
+    }
+
+    if(event is GetCategories){
+      try {
+        yield GetCategoryLoading();
+        List<CategoryItem> items = await repository.getCategories() ?? [];
+        yield GetCategorySuccess(items: items);
+      } catch (e) {
+        yield FailedState("Gagal mendapatkan kategori, silahkan refresh ulang. ",0);
+      }
+    }
+
+    if(event is CreateCategory){
+      try {
+        yield CreateCategoryLoading();
+        bool isSuccess = await repository.createCategory(event.param);
+        if(isSuccess){
+          yield CreateCategorySuccess();
+        }else{
+          yield FailedState("Gagal membuat kategori, silahkan buat ulang.",1);
+        }
+      } catch (e) {
+        yield FailedState("Gagal membuat kategori, silahkan buat ulang. ",2);
+      }
+    }
+
+    if(event is UpdateCategory){
+      try {
+        yield CreateCategoryLoading();
+        bool isSuccess = await repository.updateCategory(event.param);
+        if(isSuccess){
+          yield CreateCategorySuccess();
+        }else{
+          yield FailedState("Gagal edit kategori, silahkan edit ulang.",1);
+        }
+      } catch (e) {
+        yield FailedState("Gagal edit kategori, silahkan edit ulang. ",2);
+      }
+    }
+
+    if(event is DeleteCategory){
+      try {
+        yield DeleteCategoryLoading();
+        bool isSuccess = await repository.deleteCategory(event.id);
+        if(isSuccess){
+          yield DeleteCategorySuccess();
+        }else{
+          yield FailedState("Gagal menghapus kategori, silahkan hapus ulang.",1);
+        }
+      } catch (e) {
+        yield FailedState("Gagal menghapus kategori, silahkan hapus ulang",2);
+      }
+    }
+
   }
 }

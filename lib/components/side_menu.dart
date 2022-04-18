@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:pos_admin/screens/category/category_screen.dart';
+import 'package:pos_admin/screens/dashboard/dashboard_screen.dart';
+import 'package:pos_admin/screens/product/product_screen.dart';
+import 'package:pos_admin/utils/screen_utils.dart';
 import 'package:websafe_svg/websafe_svg.dart';
 
 import '../constants.dart';
@@ -10,8 +14,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SideMenu extends StatelessWidget {
   const SideMenu({
-    Key? key,
+    Key? key,  this.currentPage
   }) : super(key: key);
+
+  final String? currentPage;
 
   @override
   Widget build(BuildContext context) {
@@ -38,22 +44,28 @@ class SideMenu extends StatelessWidget {
               const SizedBox(height: kDefaultPadding * 2),
               // Menu Items
               SideMenuItem(
-                press: () {},
-                title: "Penjualan",
+                press: () {
+                  ScreenUtils(context).navigateTo(DashboardScreen(),replaceScreen: true);
+                },
+                title: "Home",
                 iconSrc: "assets/Icons/Inbox.svg",
-                isActive: true,
+                isActive: currentPage == "home",
               ),
               SideMenuItem(
-                press: () {},
-                title: "Sent",
+                press: () {
+                  ScreenUtils(context).navigateTo(ProductScreen(),replaceScreen: true);
+                },
+                title: "Produk",
                 iconSrc: "assets/Icons/Send.svg",
-                isActive: false,
+                isActive: currentPage == "product",
               ),
               SideMenuItem(
-                press: () {},
-                title: "Drafts",
+                press: () {
+                  ScreenUtils(context).navigateTo(CategoryScreen(),replaceScreen: true);
+                },
+                title: "Kategori",
                 iconSrc: "assets/Icons/File.svg",
-                isActive: false,
+                isActive: currentPage == "category",
               ),
               SideMenuItem(
                 press: () {},

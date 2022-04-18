@@ -193,7 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       key: _scaffoldKey,
       drawer: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 250),
-        child: const SideMenu(),
+        child: const SideMenu(currentPage: "home",),
       ),
       body : BlocListener<DashboardBloc, DashboardState>(
         child: Container(

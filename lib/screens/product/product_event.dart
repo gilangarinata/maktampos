@@ -1,54 +1,80 @@
 import 'package:equatable/equatable.dart';
+import 'package:pos_admin/services/param/category_param.dart';
 import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/param/product_param.dart';
 
-abstract class DasboardEvent extends Equatable {}
+abstract class ProductEvent extends Equatable {}
 
-class GetSummary extends DasboardEvent {
-  DateTime date;
+class GetProducts extends ProductEvent {
   @override
   List<Object> get props => [];
 
-  GetSummary(this.date);
+  GetProducts();
 }
 
-class GetSelling extends DasboardEvent {
-  DateTime date;
+class GetSubcategories extends ProductEvent {
   @override
   List<Object> get props => [];
 
-  GetSelling(this.date);
+  GetSubcategories();
 }
 
-class GetStocks extends DasboardEvent {
-  DateTime date;
+class CreateProduct extends ProductEvent {
+  ProductParam productParam;
+
   @override
   List<Object> get props => [];
 
-  GetStocks(this.date);
+  CreateProduct(this.productParam);
 }
 
-class GetMaterials extends DasboardEvent {
-  DateTime date;
+class UpdateProduct extends ProductEvent {
+  ProductParam productParam;
+
   @override
   List<Object> get props => [];
 
-  GetMaterials(this.date);
+  UpdateProduct(this.productParam);
 }
 
-class GetInventory extends DasboardEvent {
-  DateTime date;
+class DeleteProduct extends ProductEvent {
+  int id;
+
   @override
   List<Object> get props => [];
 
-  GetInventory(this.date);
+  DeleteProduct(this.id);
 }
 
-class UpdateInventory extends DasboardEvent {
-  InventoryParam param;
+class GetCategories extends ProductEvent {
   @override
   List<Object> get props => [];
 
-  UpdateInventory(this.param);
+  GetCategories();
+}
+
+class CreateCategory extends ProductEvent {
+  CategoryParam param;
+  @override
+  List<Object> get props => [param];
+
+  CreateCategory(this.param);
+}
+
+class UpdateCategory extends ProductEvent {
+  CategoryParam param;
+  @override
+  List<Object> get props => [param];
+
+  UpdateCategory(this.param);
+}
+
+class DeleteCategory extends ProductEvent {
+  int id;
+  @override
+  List<Object> get props => [id];
+
+  DeleteCategory(this.id);
 }
 
 

@@ -2,8 +2,12 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:pos_admin/res/var_constants.dart';
+import 'package:pos_admin/services/param/category_param.dart';
 import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/param/product_param.dart';
 import 'package:pos_admin/services/responses/base_response.dart';
+import 'package:pos_admin/services/responses/category_response.dart';
+import 'package:pos_admin/services/responses/subcategory_response.dart';
 import 'package:pos_admin/services/responses/inventory_response.dart';
 import 'package:pos_admin/services/responses/login_response.dart';
 import 'package:pos_admin/services/responses/material_item_response.dart';
@@ -12,57 +16,34 @@ import 'package:pos_admin/services/responses/product_response.dart';
 import 'package:pos_admin/services/responses/selling_response.dart';
 import 'package:pos_admin/services/responses/stock_response.dart';
 import 'package:pos_admin/services/responses/summary_response.dart';
+import 'package:collection/collection.dart';
 import 'package:pos_admin/services/param/login_param.dart';
 import 'package:collection/collection.dart';
 import '../constant.dart';
 import '../network_exception.dart';
 
 
-abstract class DashboardRepository {
-  Future<SummaryResponse?> getSummary(String date);
-  Future<List<ProductItem>> getSellings(String date);
-  Future<StockResponse> getStocks(String date);
-  Future<List<MaterialItem>> getMaterials(String date);
-  Future<List<MaterialItem>> getInventory(String date);
-  Future<bool> updateInventory(InventoryParam param);
+abstract class ProductRepository {
+  Future<List<ProductItem>?> getProducts();
+  Future<List<SubcategoryItem>?> getSubcategories();
+  Future<bool> createProduct(ProductParam param);
+  Future<bool> updateProduct(ProductParam param);
+  Future<bool> deleteProduct(int id);
+
+  Future<List<CategoryItem>?> getCategories();
+  Future<bool> createCategory(CategoryParam param);
+  Future<bool> deleteCategory(int id);
+  Future<bool> updateCategory(CategoryParam param);
 }
 
-class DashboardRepositoryImpl extends DashboardRepository {
+class ProductRepositoryImpl extends ProductRepository {
   final Dio _dioClient;
 
 
-  DashboardRepositoryImpl(this._dioClient);
+  ProductRepositoryImpl(this._dioClient);
 
   @override
-  Future<SummaryResponse?> getSummary(String date) async {
-    try {
-      final response = await _dioClient.get(Constant.summary,
-          queryParameters: {
-            "date" : date
-          },);
-      var statusCode = response.statusCode ?? -1;
-      var statusMessage = response.statusMessage ?? "Unknown Error";
-      if (statusCode == Constant.successCode) {
-        return SummaryResponse.fromJson(response.data);
-      } else {
-        throw ClientErrorException(statusMessage, statusCode);
-      }
-    } on DioError catch (ex) {
-      var statusCode = ex.response?.statusCode ?? -4;
-      var statusMessage = ex.message;
-      print("gilang" + statusMessage);
-      throw ClientErrorException(statusMessage, statusCode);
-    } catch (e) {
-      throw Exception(e);
-    }
-  }
-
-    /*
-        First get the list of product in this func
-        Then get Selling data in sellingData() method
-     */
-  @override
-  Future<List<ProductItem>> getSellings(String date) async {
+  Future<List<ProductItem>?> getProducts() async {
     try {
       final response = await _dioClient.get(Constant.products,);
       var statusCode = response.statusCode ?? -1;
@@ -72,7 +53,7 @@ class DashboardRepositoryImpl extends DashboardRepository {
         var productResponse = ProductResponse.fromJson(response.data)
             .items
             ?.where((element) => element.type == Type.ITEM).toList();
-        return await getSellingData(date, productResponse);
+        return productResponse;
       } else {
         throw ClientErrorException(statusMessage, statusCode);
       }
@@ -86,59 +67,15 @@ class DashboardRepositoryImpl extends DashboardRepository {
     }
   }
 
-  /*
-      First get the list of product on getSellings() method
-      Then get Selling data in this method
-   */
-  Future<List<ProductItem>> getSellingData(String date, List<ProductItem>? productItems) async {
-    try {
-      final response = await _dioClient.get(Constant.selling,
-        queryParameters: {
-          "date" : date
-        },);
-      var statusCode = response.statusCode ?? -1;
-      var statusMessage = response.statusMessage ?? "Unknown Error";
-      if (statusCode == Constant.successCode) {
-        var sellingResponse = SellingResponse.fromJson(response.data);
-        productItems?.forEach((product) {
-          var selling = sellingResponse.items?.firstWhereOrNull((selling) => selling.itemId == product.id);
-          if(selling != null){
-            product.sold = selling.sold;
-          }else{
-            product.sold == "0";
-          }
-        });
-
-        return productItems ?? [];
-      } else {
-        print("get selling failed");
-        throw ClientErrorException(statusMessage, statusCode);
-      }
-    } on DioError catch (ex) {
-      var statusCode = ex.response?.statusCode ?? -4;
-      var statusMessage = ex.message;
-      throw ClientErrorException(statusMessage, statusCode);
-    } catch (e) {
-      throw Exception(e);
-    }
-  }
-
-  /*
-        First get the list of product in this func filter by TYPE = OUTLET_ITEM
-        Then get stock data in getStockData() method
-     */
   @override
-  Future<StockResponse> getStocks(String date) async {
+  Future<List<SubcategoryItem>?> getSubcategories() async {
     try {
-      final response = await _dioClient.get(Constant.products,);
+      final response = await _dioClient.get(Constant.subcategory,);
       var statusCode = response.statusCode ?? -1;
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
-
-        var productResponse = ProductResponse.fromJson(response.data)
-            .items
-            ?.where((element) => element.type == Type.OUTLET_ITEM).toList();
-        return await getStockData(date, productResponse);
+        var categoryResponse = SubcategoryResponse.fromJson(response.data).items?.where((element) => element.type == "item").toList();
+        return categoryResponse;
       } else {
         throw ClientErrorException(statusMessage, statusCode);
       }
@@ -152,49 +89,16 @@ class DashboardRepositoryImpl extends DashboardRepository {
     }
   }
 
-  Future<StockResponse> getStockData(String date, List<ProductItem>? productItems) async {
+  @override
+  Future<bool> createProduct(ProductParam param) async {
     try {
-      final response = await _dioClient.get(Constant.stock,
-        queryParameters: {
-          "date" : date
-        },);
+      final response = await _dioClient.post(Constant.products,data: param.toMap());
       var statusCode = response.statusCode ?? -1;
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
-        var stockResponse = StockResponse.fromJson(response.data);
-        var cupItems = productItems?.where((element) => element.categoryId == VarConstants.CATEGORY_ID_CUPS);
-        var spicesItems = productItems?.where((element) => element.categoryId == VarConstants.CATEGORY_ID_SPICES);
-        cupItems?.forEach((cupItem) {
-          var stockItem = stockResponse.cups?.items?.firstWhereOrNull((element) => element.itemId == cupItem.id);
-          cupItem.stock = int.tryParse(stockItem?.stock ?? "") ?? 0;
-          cupItem.sold = stockItem?.sold;
-          cupItem.left = int.tryParse(stockItem?.lefts ?? "") ?? 0;
-        });
-
-        spicesItems?.forEach((spicesItem) {
-          var stockItem = stockResponse.spices?.items?.firstWhereOrNull((element) => element.itemId == spicesItem.id);
-          spicesItem.stock = int.tryParse(stockItem?.stock ?? "") ?? 0;
-          spicesItem.sold = stockItem?.sold;
-          spicesItem.left = int.tryParse(stockItem?.lefts ?? "") ?? 0;
-        });
-
-        print("cup Items : ${productItems?.length}" );
-
-        var newStockResponse = StockResponse(
-          milk: stockResponse.milk,
-          cups: Cups(
-            url: stockResponse.cups?.url,
-            items: cupItems?.map((e) => e.toCupItem()).toList()
-          ),
-          spices: Cups(
-              url: stockResponse.spices?.url,
-              items: spicesItems?.map((e) => e.toCupItem()).toList()
-          ),
-        );
-
-        return newStockResponse;
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
       } else {
-        print("get selling failed");
         throw ClientErrorException(statusMessage, statusCode);
       }
     } on DioError catch (ex) {
@@ -207,15 +111,58 @@ class DashboardRepositoryImpl extends DashboardRepository {
   }
 
   @override
-  Future<List<MaterialItem>> getMaterials(String date) async {
+  Future<bool> updateProduct(ProductParam param) async {
     try {
-      final response = await _dioClient.get(Constant.materialItem,);
+      final response = await _dioClient.put(Constant.products,data: param.toMap());
       var statusCode = response.statusCode ?? -1;
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
-        var materialResponse = MaterialItemResponse.fromJson(response.data)
-            .items;
-        return await getMaterialData(date, materialResponse);
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> deleteProduct(int id) async {
+    try {
+      final response = await _dioClient.delete(Constant.products,queryParameters: {
+        "id" : id
+      });
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<List<CategoryItem>?> getCategories() async {
+    try {
+      final response = await _dioClient.get(Constant.category,);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var categoryResponse = CategoryResponse.fromJson(response.data).items?.where((element) => element.type == "item").toList();
+        return categoryResponse;
       } else {
         throw ClientErrorException(statusMessage, statusCode);
       }
@@ -229,24 +176,42 @@ class DashboardRepositoryImpl extends DashboardRepository {
     }
   }
 
-  Future<List<MaterialItem>> getMaterialData(String date, List<MaterialItem>? materialItems) async {
+  @override
+  Future<bool> createCategory(CategoryParam param) async {
     try {
-      final response = await _dioClient.get(Constant.materialData,
-        queryParameters: {
-          "date" : date
-        },);
+      final response = await _dioClient.post(Constant.category,data: param.toMap());
       var statusCode = response.statusCode ?? -1;
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
-        var materialResponse = List<MaterialResponse>.from(response.data.map((e) => MaterialResponse.fromJson(e)));
-        materialItems?.forEach((element) {
-          var material = materialResponse.firstWhereOrNull((material) => material.materialId == element.id);
-          element.stock = material?.stock;
-          element.added = material?.added;
-        });
-        return materialItems ?? [];
+        List<CategoryItem>? categories = await getCategories();
+        var newCategory = categories?.firstWhereOrNull((element) => element.name == param.name && element.type == param.type);
+        return await createSubCategory(param, newCategory);
       } else {
-        print("get selling failed");
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<bool> createSubCategory(CategoryParam param, CategoryItem? item) async {
+    try {
+      var subCategoryParam = {
+        "categoryId" : item?.id,
+        "name" : param.name,
+        "type" : param.type
+      };
+      final response = await _dioClient.post(Constant.subcategory,data: subCategoryParam);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
+      } else {
         throw ClientErrorException(statusMessage, statusCode);
       }
     } on DioError catch (ex) {
@@ -259,47 +224,17 @@ class DashboardRepositoryImpl extends DashboardRepository {
   }
 
   @override
-  Future<List<MaterialItem>> getInventory(String date) async {
+  Future<bool> deleteCategory(int id) async {
     try {
-      final response = await _dioClient.get(Constant.materialItem,);
+      final response = await _dioClient.delete(Constant.category,queryParameters: {
+        "id" : id
+      });
       var statusCode = response.statusCode ?? -1;
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
-        var materialResponse = MaterialItemResponse.fromJson(response.data)
-            .items;
-        return await getInventoryData(date, materialResponse);
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
       } else {
-        throw ClientErrorException(statusMessage, statusCode);
-      }
-    } on DioError catch (ex) {
-      var statusCode = ex.response?.statusCode ?? -4;
-      var statusMessage = ex.message;
-      print("gilang" + statusMessage);
-      throw ClientErrorException(statusMessage, statusCode);
-    } catch (e) {
-      throw Exception(e);
-    }
-  }
-
-  Future<List<MaterialItem>> getInventoryData(String date, List<MaterialItem>? materialItems) async {
-    try {
-      final response = await _dioClient.get(Constant.inventory,
-        queryParameters: {
-          "date" : date
-        },);
-      var statusCode = response.statusCode ?? -1;
-      var statusMessage = response.statusMessage ?? "Unknown Error";
-      if (statusCode == Constant.successCode) {
-        var inventoryResponse = InventoryResponse.fromJson(response.data);
-        materialItems?.forEach((element) {
-          var material = inventoryResponse.inventory?.firstWhereOrNull((material) => material.materialId == element.id);
-          element.inventoryStock = material?.warehouseStock;
-          element.takenByOutlets = material?.takenByOutlet;
-          element.left = material?.leftOver;
-        });
-        return materialItems ?? [];
-      } else {
-        print("get selling failed");
         throw ClientErrorException(statusMessage, statusCode);
       }
     } on DioError catch (ex) {
@@ -312,17 +247,16 @@ class DashboardRepositoryImpl extends DashboardRepository {
   }
 
   @override
-  Future<bool> updateInventory(InventoryParam param) async {
+  Future<bool> updateCategory(CategoryParam param) async {
     try {
-      final response = await _dioClient.post(Constant.inventory,
-      data: param.toMap());
+      final response = await _dioClient.put(Constant.category,data: param.toMap());
       var statusCode = response.statusCode ?? -1;
       var statusMessage = response.statusMessage ?? "Unknown Error";
       if (statusCode == Constant.successCode) {
-        var baseResponse = BaseResponse.fromJson(response.data);
-        return baseResponse.success ?? false;
+        List<SubcategoryItem>? subcategories = await getSubcategories();
+        var subcategoryShouldEdit = subcategories?.firstWhereOrNull((element) => element.subCategoryName == param.previousName);
+        return await updateSubCategory(param, subcategoryShouldEdit);
       } else {
-        print("get selling failed");
         throw ClientErrorException(statusMessage, statusCode);
       }
     } on DioError catch (ex) {
@@ -333,4 +267,29 @@ class DashboardRepositoryImpl extends DashboardRepository {
       throw Exception(e);
     }
   }
+
+  Future<bool> updateSubCategory(CategoryParam param, SubcategoryItem? item) async {
+    try {
+      var subCategoryParam = {
+        "subCategoryName" : param.name,
+        "id" : item?.id
+      };
+      final response = await _dioClient.put(Constant.subcategory,data: subCategoryParam);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
 }

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_admin/components/progress_loading.dart';
 import 'package:pos_admin/components/side_menu.dart';
 import 'package:pos_admin/res/my_colors.dart';
+import 'package:pos_admin/screens/category/components/create_category_dialog.dart';
 
 import 'package:pos_admin/screens/email/email_screen.dart';
 import 'package:pos_admin/screens/main/components/email_card.dart';
@@ -12,6 +13,7 @@ import 'package:pos_admin/screens/product/product_bloc.dart';
 import 'package:pos_admin/screens/product/product_event.dart';
 import 'package:pos_admin/screens/product/product_state.dart';
 import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/responses/category_response.dart';
 import 'package:pos_admin/services/responses/subcategory_response.dart';
 import 'package:pos_admin/services/responses/material_item_response.dart';
 import 'package:pos_admin/services/responses/product_response.dart';
@@ -29,29 +31,25 @@ import '../../../responsive.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class ProductScreen extends StatefulWidget {
+class CategoryScreen extends StatefulWidget {
   // Press "Command + ."
-  const ProductScreen({
+  const CategoryScreen({
     Key? key,
   }) : super(key: key);
 
   @override
-  _ProductScreenState createState() => _ProductScreenState();
+  _CategoryScreenState createState() => _CategoryScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _CategoryScreenState extends State<CategoryScreen> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late ProductBloc bloc;
 
-  bool _getProductIsLoading = true;
   bool _getCategoriesIsLoading = true;
-  bool _createProductLoading = true;
-  List<ProductItem> _productItems = [];
-  List<SubcategoryItem> _categoryItems = [];
+  List<CategoryItem> _categoryItems = [];
 
   late Dialog createDialog;
-
 
   @override
   void initState() {
@@ -64,66 +62,34 @@ class _ProductScreenState extends State<ProductScreen> {
   void initDialog(){
     createDialog = Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), //this right here
-      child: CreateProductDialog(
-        categoryItems: _categoryItems,
-      ),
+      child: CreateCategoryDialog(),
     );
   }
 
   void getData(){
-    bloc.add(GetProducts());
-    bloc.add(GetSubcategories());
+    bloc.add(GetCategories());
   }
 
   void blocListener(BuildContext context, ProductState state) async {
-    if (state is GetProductLoading) {
-      setState(() {
-        _getProductIsLoading = true;
-      });
-    }else if (state is GetSubcategoryLoading) {
+    if (state is GetCategoryLoading) {
       setState(() {
         _getCategoriesIsLoading = true;
       });
-    }else if (state is CreateProductDialog) {
-      setState(() {
-        _createProductLoading = true;
-      });
-    }  else if (state is GetProductSuccess) {
-      /*
-        Get products
-       */
-      setState(() {
-        _getProductIsLoading = false;
-        _productItems = state.items ?? [];
-      });
-    }else if (state is GetSubategoriesSuccess) {
+    } else if (state is GetCategorySuccess) {
       /*
         Get categories
        */
       setState(() {
         _getCategoriesIsLoading = false;
         _categoryItems = state.items ?? [];
-        initDialog();
       });
-    } else if (state is CreateProductSuccess) {
-      /*
-        create product
-       */
+    } else if (state is InitialState) {
       setState(() {
-        _createProductLoading = false;
-        getData();
-      });
-    }   else if (state is InitialState) {
-      setState(() {
-        _getProductIsLoading = true;
         _getCategoriesIsLoading = true;
-        _createProductLoading = true;
       });
     } else if (state is FailedState) {
       setState(() {
-        _getProductIsLoading = false;
         _getCategoriesIsLoading = false;
-        _createProductLoading = false;
       });
       if (state.code == 401) {
         MySnackbar(context)
@@ -143,31 +109,8 @@ class _ProductScreenState extends State<ProductScreen> {
           Row(
             children: [
               Expanded(
-                flex: 3,
                 child: Text(
                   "Nama",
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: MyColors.grey_80,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  "Harga",
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: MyColors.grey_80,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  "Kategori",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14,
@@ -184,51 +127,31 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   List<Widget> generateTable(BuildContext context){
-    List<Widget> sellingItems = _productItems.map((product) => InkWell(
+    List<Widget> sellingItems = _categoryItems.map((category) => InkWell(
       onTap: (){
         Dialog editDialog = Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), //this right here
-          child: CreateProductDialog(
-            categoryItems: _categoryItems,
-            productItem: product,
+          child: CreateCategoryDialog(
+            categoryItem: category,
           ),
         );
 
-        showDialog(context: context, builder: (BuildContext context) => editDialog);
+        showDialog(context: context, builder: (BuildContext context) => editDialog).then((value) {
+          if(value == 200){
+            getData();
+          }
+        });
       },
       child: Column(
         children: [
           Row(
             children: [
               Expanded(
-                flex: 3,
                 child: Text(
-                  product.name  ?? "-",
+                  category.name  ?? "-",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  NumberUtils.toRupiah(product.price?.toDouble() ?? 0.0)  ?? "",
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: MyColors.grey_80,
-                      fontSize: 14
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Center(
-                  child: Text(
-                    product.categoryName ?? "-",
-                    style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: MyColors.grey_80,
-                        fontSize: 14
-                    ),
                   ),
                 ),
               ),
@@ -249,7 +172,7 @@ class _ProductScreenState extends State<ProductScreen> {
       key: _scaffoldKey,
       drawer: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 250),
-        child: const SideMenu(currentPage: "product",),
+        child: const SideMenu(currentPage: "category",),
       ),
       body : BlocListener<ProductBloc, ProductState>(
         child: Container(
@@ -286,7 +209,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
                 const SizedBox(height: kDefaultPadding),
                 Expanded(
-                  child: _getProductIsLoading ? ProgressLoading() :  Padding(
+                  child: _getCategoriesIsLoading ? ProgressLoading() :  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: RefreshIndicator(
                       onRefresh: () async {
@@ -306,7 +229,11 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          showDialog(context: context, builder: (BuildContext context) => createDialog);
+          showDialog(context: context, builder: (BuildContext context) => createDialog).then((value) {
+            if(value == 200){
+              getData();
+            }
+          });
         },
         child: const Icon(Icons.add),
       ),
