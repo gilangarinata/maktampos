@@ -271,7 +271,7 @@ class ProductRepositoryImpl extends ProductRepository {
   Future<bool> updateSubCategory(CategoryParam param, SubcategoryItem? item) async {
     try {
       var subCategoryParam = {
-        "subCategoryName" : param.name,
+        "name" : param.name,
         "id" : item?.id
       };
       final response = await _dioClient.put(Constant.subcategory,data: subCategoryParam);

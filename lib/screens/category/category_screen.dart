@@ -110,7 +110,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             children: [
               Expanded(
                 child: Text(
-                  "Nama",
+                  "Kategori",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14,
@@ -155,6 +155,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ),
               ),
+              Icon(Icons.arrow_forward_ios_rounded, color: MyColors.grey_60,)
             ],
           ),
           const Divider(height: 30,),
@@ -198,7 +199,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         ),
                       SizedBox(width: 15),
                       Text(
-                        "Produk",
+                        "Kategori",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
                             fontSize: 16

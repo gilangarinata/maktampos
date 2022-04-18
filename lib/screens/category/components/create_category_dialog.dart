@@ -53,13 +53,20 @@ class _CreateProductDialogState extends State<CreateCategoryDialog> {
       setState(() {
         _deleteCategoryLoading = true;
       });
-      Navigator.pop(context,200);
     }  else if (state is CreateCategorySuccess) {
       /*
         create caegory
        */
       setState(() {
         _createCategoryLoading = false;
+        _deleteCategoryLoading = false;
+      });
+      Navigator.pop(context,200);
+    }else if (state is DeleteCategorySuccess) {
+      /*
+        delete category
+       */
+      setState(() {
         _deleteCategoryLoading = false;
       });
       Navigator.pop(context,200);
@@ -98,7 +105,7 @@ class _CreateProductDialogState extends State<CreateCategoryDialog> {
               children: [
                 Expanded(
                   child: Text(
-                    "Tambah Kategori",
+                    widget.categoryItem != null ? "Edit Kategori" : "Tambah Kategori",
                     style: Theme.of(context).textTheme.caption?.copyWith(
                         color: MyColors.grey_80,
                         fontSize: 16
@@ -131,60 +138,67 @@ class _CreateProductDialogState extends State<CreateCategoryDialog> {
               ),
             ),
             SizedBox(height: 20,),
-            Container(
-              child: _createCategoryLoading ? ProgressLoading() : FlatButton.icon(
-                minWidth: double.infinity,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                color: kPrimaryColor,
-                onPressed: () {
-                  var productName = _nameController.text.toString();
-                  if(productName.isEmpty){
-                    setState(() {
-                      nameIsValid = false;
-                    });
-                    return;
-                  }
-                  setState(() {
-                    nameIsValid = true;
-                  });
-                  var categoryParam = CategoryParam(productName, "item", widget.categoryItem?.id, widget.categoryItem?.name);
-                  if(categoryParam.isValid()){
-                    if(widget.categoryItem != null){
-                      bloc.add(UpdateCategory(categoryParam));
-                    }else{
-                      bloc.add(CreateCategory(categoryParam));
-                    }
-                  }
-                },
-                icon: WebsafeSvg.asset("assets/Icons/Edit.svg", width: 16),
-                label: const Text(
-                  "Simpan",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ).addNeumorphism(
-                topShadowColor: Colors.white,
-                bottomShadowColor: const Color(0xFF234395).withOpacity(0.2),
+            _deleteCategoryLoading || _createCategoryLoading ? ProgressLoading() : Container(
+              child: Column(
+                children: [
+                  Container(
+                    child: FlatButton.icon(
+                      minWidth: double.infinity,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      color: kPrimaryColor,
+                      onPressed: () {
+                        var productName = _nameController.text.toString();
+                        if(productName.isEmpty){
+                          setState(() {
+                            nameIsValid = false;
+                          });
+                          return;
+                        }
+                        setState(() {
+                          nameIsValid = true;
+                        });
+                        var categoryParam = CategoryParam(productName, "item", widget.categoryItem?.id, widget.categoryItem?.name);
+                        if(categoryParam.isValid()){
+                          if(widget.categoryItem != null){
+                            bloc.add(UpdateCategory(categoryParam));
+                          }else{
+                            bloc.add(CreateCategory(categoryParam));
+                          }
+                        }
+                      },
+                      icon: WebsafeSvg.asset("assets/Icons/Edit.svg", width: 16),
+                      label: const Text(
+                        "Simpan",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ).addNeumorphism(
+                      topShadowColor: Colors.white,
+                      bottomShadowColor: const Color(0xFF234395).withOpacity(0.2),
+                    ),
+                  ),
+                  if(widget.categoryItem != null)
+                    Container(
+                        child: _createCategoryLoading ? ProgressLoading() : FlatButton.icon(
+                          minWidth: double.infinity,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          color: Colors.red,
+                          onPressed: () {
+                            showDeleteDialog(context);
+                          },
+                          label: const Text(
+                            "Hapus",
+                            style: TextStyle(color: Colors.white),
+                          ), icon: Icon(Icons.remove_circle_outline, color: Colors.white,),
+                        )
+                    ),
+                ],
               ),
             ),
-            if(widget.categoryItem != null)
-              _deleteCategoryLoading ? ProgressLoading() : Container(
-                child: _createCategoryLoading ? ProgressLoading() : FlatButton.icon(
-                  minWidth: double.infinity,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  color: Colors.red,
-                  onPressed: () {
-                    showDeleteDialog(context);
-                  },
-                  label: const Text(
-                    "Hapus",
-                    style: TextStyle(color: Colors.white),
-                  ), icon: Icon(Icons.remove_circle_outline, color: Colors.white,),
-                )
-              ),
+
           ],
         ),
       ),
