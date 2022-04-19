@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pos_admin/screens/category/category_screen.dart';
 import 'package:pos_admin/screens/cup/cup_screen.dart';
 import 'package:pos_admin/screens/dashboard/dashboard_screen.dart';
+import 'package:pos_admin/screens/outlet/outlet_screen.dart';
 import 'package:pos_admin/screens/product/product_screen.dart';
 import 'package:pos_admin/screens/spices/spices_screen.dart';
 import 'package:pos_admin/screens/user/user_screen.dart';
@@ -104,7 +105,7 @@ class SideMenu extends StatelessWidget {
               ),
               SideMenuItem(
                 press: () {
-
+                  ScreenUtils(context).navigateTo(OutletScreen(),replaceScreen: true);
                 },
                 title: "Outlet",
                 iconSrc: "assets/Icons/Trash.svg",

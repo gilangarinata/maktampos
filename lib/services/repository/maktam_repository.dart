@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:pos_admin/res/var_constants.dart';
 import 'package:pos_admin/services/param/category_param.dart';
 import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/param/outlet_param.dart';
 import 'package:pos_admin/services/param/product_param.dart';
 import 'package:pos_admin/services/param/user_param.dart';
 import 'package:pos_admin/services/responses/base_response.dart';
@@ -33,6 +34,9 @@ abstract class MaktamRepository {
   Future<bool> deleteUser(int id);
 
   Future<List<OutletItem>?> getOutlets();
+  Future<bool> createOutlet(OutletParam param);
+  Future<bool> updateOutlet(OutletParam param);
+  Future<bool> deleteOutlet(int id);
 }
 
 class MaktamRepositoryImpl extends MaktamRepository {
@@ -150,6 +154,79 @@ class MaktamRepositoryImpl extends MaktamRepository {
       var statusCode = ex.response?.statusCode ?? -4;
       var statusMessage = ex.message;
       throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> createOutlet(OutletParam param) async {
+    try {
+      final response = await _dioClient.post(Constant.outlet,data: param.toMap());
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var baseResponse = BaseResponse.fromJson(response.data);
+        if(baseResponse.success == true){
+          return true;
+        }else{
+          throw ClientErrorException(baseResponse.message ?? "Gagal membuat user", statusCode);
+        }
+      } else {
+        var baseResponse = BaseResponse.fromJson(response.data);
+        throw ClientErrorException(baseResponse.message ?? "", statusCode);
+      }
+    } on DioError catch (ex) {
+      var baseResponse = baseResponseFromJson(ex.response.toString());
+      throw ClientErrorException(baseResponse.message ?? "Gagal Membuat User, username tidak boleh ada yang sama", 500);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> deleteOutlet(int id) async {
+    try {
+      final response = await _dioClient.delete(Constant.outlet,queryParameters: {
+        "id" : id
+      });
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var isSuccess = BaseResponse.fromJson(response.data).success;
+        return isSuccess ?? false;
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<bool> updateOutlet(OutletParam param) async {
+    try {
+      final response = await _dioClient.put(Constant.outlet,data: param.toMap());
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var baseResponse = BaseResponse.fromJson(response.data);
+        if(baseResponse.success == true){
+          return true;
+        }else{
+          throw ClientErrorException(baseResponse.message ?? "Gagal membuat user", statusCode);
+        }
+      } else {
+        var baseResponse = BaseResponse.fromJson(response.data);
+        throw ClientErrorException(baseResponse.message ?? "", statusCode);
+      }
+    } on DioError catch (ex) {
+      var baseResponse = baseResponseFromJson(ex.response.toString());
+      throw ClientErrorException(baseResponse.message ?? "Gagal Membuat User, username tidak boleh ada yang sama", 500);
     } catch (e) {
       throw Exception(e);
     }

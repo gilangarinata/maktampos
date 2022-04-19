@@ -76,5 +76,59 @@ class MaktamBloc extends Bloc<MaktamEvent, MaktamState> {
       }
     }
 
+    if (event is CreateOutlet) {
+      try {
+        yield CreateOutletLoading();
+        var isSuccess = await repository.createOutlet(event.param);
+        if(isSuccess){
+          yield CreateOutletsSuccess();
+        }else{
+          yield FailedState("Gagal membuat outlet ",0);
+        }
+      } catch (e) {
+        if(e is ClientErrorException){
+          yield FailedState("${e.message} ",e.code);
+        }else{
+          yield FailedState("Gagal membuat outlet ",0);
+        }
+      }
+    }
+
+    if (event is UpdateOutlet) {
+      try {
+        yield CreateOutletLoading();
+        var isSuccess = await repository.updateOutlet(event.param);
+        if(isSuccess){
+          yield CreateOutletsSuccess();
+        }else{
+          yield FailedState("Gagal update outlet ",0);
+        }
+      } catch (e) {
+        if(e is ClientErrorException){
+          yield FailedState("${e.message} ",e.code);
+        }else{
+          yield FailedState("Gagal update outlet ",0);
+        }
+      }
+    }
+
+    if (event is DeleteOutlet) {
+      try {
+        yield DeleteOutletLoading();
+        var isSuccess = await repository.deleteOutlet(event.id);
+        if(isSuccess){
+          yield DeleteOutletsSuccess();
+        }else{
+          yield FailedState("Gagal update outlet ",0);
+        }
+      } catch (e) {
+        if(e is ClientErrorException){
+          yield FailedState("${e.message} ",e.code);
+        }else{
+          yield FailedState("Gagal update outlet ",0);
+        }
+      }
+    }
+
   }
 }

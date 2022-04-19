@@ -187,7 +187,7 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
                   passwordIsValid = value.isNotEmpty;
                 });
               },
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.text,
               obscureText: true,
               decoration: InputDecoration(
                 errorText: passwordIsValid == false ? "Tidak Boleh Kosong" : null,
@@ -248,7 +248,7 @@ class _CreateUserDialogState extends State<CreateUserDialog> {
                   phoneIsValid = value.isNotEmpty;
                 });
               },
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 hintText: "Nomor Hp",
                 filled: true,

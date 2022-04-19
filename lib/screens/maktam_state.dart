@@ -111,3 +111,42 @@ class GetOutletLoading extends MaktamState {
   List<Object> get props => [];
 }
 
+
+/*
+  create outlets
+*/
+
+class CreateOutletsSuccess extends MaktamState {
+
+  CreateOutletsSuccess();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class CreateOutletLoading extends MaktamState {
+  CreateOutletLoading();
+
+  @override
+  List<Object> get props => [];
+}
+
+/*
+  delete outlets
+*/
+
+class DeleteOutletsSuccess extends MaktamState {
+
+
+  DeleteOutletsSuccess();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class DeleteOutletLoading extends MaktamState {
+  DeleteOutletLoading();
+
+  @override
+  List<Object> get props => [];
+}

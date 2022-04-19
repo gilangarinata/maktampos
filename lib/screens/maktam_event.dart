@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:pos_admin/services/param/category_param.dart';
 import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/param/outlet_param.dart';
 import 'package:pos_admin/services/param/product_param.dart';
 import 'package:pos_admin/services/param/user_param.dart';
 
@@ -45,5 +46,29 @@ class GetOutlets extends MaktamEvent {
   List<Object> get props => [];
 
   GetOutlets();
+}
+
+class CreateOutlet extends MaktamEvent {
+  final OutletParam param;
+  @override
+  List<Object> get props => [];
+
+  CreateOutlet(this.param);
+}
+
+class UpdateOutlet extends MaktamEvent {
+  final OutletParam param;
+  @override
+  List<Object> get props => [];
+
+  UpdateOutlet(this.param);
+}
+
+class DeleteOutlet extends MaktamEvent {
+  final int id;
+  @override
+  List<Object> get props => [];
+
+  DeleteOutlet(this.id);
 }
 
