@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_admin/components/progress_loading.dart';
 import 'package:pos_admin/components/side_menu.dart';
 import 'package:pos_admin/res/my_colors.dart';
+import 'package:pos_admin/screens/cup/components/create_cup_dialog.dart';
 
 import 'package:pos_admin/screens/email/email_screen.dart';
 import 'package:pos_admin/screens/main/components/email_card.dart';
@@ -29,9 +30,9 @@ import '../../../responsive.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class ProductScreen extends StatefulWidget {
+class SpicesScreen extends StatefulWidget {
   // Press "Command + ."
-  const ProductScreen({
+  const SpicesScreen({
     Key? key,
   }) : super(key: key);
 
@@ -39,19 +40,15 @@ class ProductScreen extends StatefulWidget {
   _ProductScreenState createState() => _ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _ProductScreenState extends State<SpicesScreen> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late ProductBloc bloc;
 
   bool _getProductIsLoading = true;
-  bool _getCategoriesIsLoading = true;
-  bool _createProductLoading = true;
   List<ProductItem> _productItems = [];
-  List<SubcategoryItem> _categoryItems = [];
 
   late Dialog createDialog;
-
 
   @override
   void initState() {
@@ -64,15 +61,14 @@ class _ProductScreenState extends State<ProductScreen> {
   void initDialog(){
     createDialog = Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), //this right here
-      child: CreateProductDialog(
-        categoryItems: _categoryItems,
+      child: CreateCupDialog(
+        isCup: false,
       ),
     );
   }
 
   void getData(){
-    bloc.add(GetProducts());
-    bloc.add(GetSubcategories());
+    bloc.add(GetSpices());
   }
 
   void blocListener(BuildContext context, ProductState state) async {
@@ -80,15 +76,7 @@ class _ProductScreenState extends State<ProductScreen> {
       setState(() {
         _getProductIsLoading = true;
       });
-    }else if (state is GetSubcategoryLoading) {
-      setState(() {
-        _getCategoriesIsLoading = true;
-      });
-    }else if (state is CreateProductDialog) {
-      setState(() {
-        _createProductLoading = true;
-      });
-    }  else if (state is GetProductSuccess) {
+    } else if (state is GetProductSuccess) {
       /*
         Get products
        */
@@ -96,34 +84,13 @@ class _ProductScreenState extends State<ProductScreen> {
         _getProductIsLoading = false;
         _productItems = state.items ?? [];
       });
-    }else if (state is GetSubategoriesSuccess) {
-      /*
-        Get categories
-       */
-      setState(() {
-        _getCategoriesIsLoading = false;
-        _categoryItems = state.items ?? [];
-        initDialog();
-      });
-    } else if (state is CreateProductSuccess) {
-      /*
-        create product
-       */
-      setState(() {
-        _createProductLoading = false;
-        getData();
-      });
-    }   else if (state is InitialState) {
+    } else if (state is InitialState) {
       setState(() {
         _getProductIsLoading = true;
-        _getCategoriesIsLoading = true;
-        _createProductLoading = true;
       });
     } else if (state is FailedState) {
       setState(() {
         _getProductIsLoading = false;
-        _getCategoriesIsLoading = false;
-        _createProductLoading = false;
       });
       if (state.code == 401) {
         MySnackbar(context)
@@ -156,17 +123,6 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  "Harga",
-                  style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: MyColors.grey_80,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
                   "Kategori",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
@@ -188,13 +144,15 @@ class _ProductScreenState extends State<ProductScreen> {
       onTap: (){
         Dialog editDialog = Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), //this right here
-          child: CreateProductDialog(
-            categoryItems: _categoryItems,
+          child: CreateCupDialog(
             productItem: product,
+            isCup: false,
           ),
         );
 
-        showDialog(context: context, builder: (BuildContext context) => editDialog);
+        showDialog(context: context, builder: (BuildContext context) => editDialog).then((value) {
+          if(value == 200)  getData();
+        });
       },
       child: Column(
         children: [
@@ -213,22 +171,10 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  NumberUtils.toRupiah(product.price?.toDouble() ?? 0.0)  ?? "",
+                  product.categoryName ?? "-",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Center(
-                  child: Text(
-                    product.categoryName ?? "-",
-                    style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: MyColors.grey_80,
-                        fontSize: 14
-                    ),
                   ),
                 ),
               ),
@@ -237,7 +183,7 @@ class _ProductScreenState extends State<ProductScreen> {
           const Divider(height: 30,),
         ],
       ),
-    )).toList();
+    )).toList() ?? [];
 
     sellingItems.insert(0,buildTableHeader(context));
     return sellingItems;
@@ -249,7 +195,7 @@ class _ProductScreenState extends State<ProductScreen> {
       key: _scaffoldKey,
       drawer: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 250),
-        child: const SideMenu(currentPage: "product",),
+        child: const SideMenu(currentPage: "spices",),
       ),
       body : BlocListener<ProductBloc, ProductState>(
         child: Container(
@@ -275,7 +221,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         ),
                       SizedBox(width: 15),
                       Text(
-                        "Produk",
+                        "Bumbu",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
                             fontSize: 16
@@ -306,7 +252,9 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          showDialog(context: context, builder: (BuildContext context) => createDialog);
+          showDialog(context: context, builder: (BuildContext context) => createDialog).then((value) {
+            if(value == 200) getData();
+          });
         },
         child: const Icon(Icons.add),
       ),

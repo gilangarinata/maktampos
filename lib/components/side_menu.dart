@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pos_admin/screens/category/category_screen.dart';
+import 'package:pos_admin/screens/cup/cup_screen.dart';
 import 'package:pos_admin/screens/dashboard/dashboard_screen.dart';
 import 'package:pos_admin/screens/product/product_screen.dart';
+import 'package:pos_admin/screens/spices/spices_screen.dart';
+import 'package:pos_admin/screens/user/user_screen.dart';
 import 'package:pos_admin/utils/screen_utils.dart';
 import 'package:websafe_svg/websafe_svg.dart';
 
@@ -68,13 +71,53 @@ class SideMenu extends StatelessWidget {
                 isActive: currentPage == "category",
               ),
               SideMenuItem(
-                press: () {},
-                title: "Deleted",
+                press: () {
+                  ScreenUtils(context).navigateTo(CupScreen(),replaceScreen: true);
+                },
+                title: "Cup",
+                iconSrc: "assets/Icons/Trash.svg",
+                isActive: currentPage == "cup",
+              ),
+              SideMenuItem(
+                press: () {
+                  ScreenUtils(context).navigateTo(SpicesScreen(),replaceScreen: true);
+                },
+                title: "Bumbu",
+                iconSrc: "assets/Icons/Trash.svg",
+                isActive: currentPage == "spices",
+              ),
+              SideMenuItem(
+                press: () {
+
+                },
+                title: "Material",
+                iconSrc: "assets/Icons/Trash.svg",
+                isActive: currentPage == "material",
+              ),
+              SideMenuItem(
+                press: () {
+                  ScreenUtils(context).navigateTo(UserScreen(),replaceScreen: true);
+                },
+                title: "Pengguna",
+                iconSrc: "assets/Icons/Trash.svg",
+                isActive: currentPage == "user",
+              ),
+              SideMenuItem(
+                press: () {
+
+                },
+                title: "Outlet",
+                iconSrc: "assets/Icons/Trash.svg",
+                isActive: currentPage == "outlet",
+              ),
+              SideMenuItem(
+                press: () {
+
+                },
+                title: "Keluar",
                 iconSrc: "assets/Icons/Trash.svg",
                 isActive: false,
-                showBorder: false,
               ),
-
               const SizedBox(height: kDefaultPadding * 2),
               // Tags
             ],

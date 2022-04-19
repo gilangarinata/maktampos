@@ -17,6 +17,8 @@ class Constant {
   static const String inventory = "/api/v1/admin/dashboard/inventory";
   static const String subcategory = "/api/v1/admin/master-data/subcategories";
   static const String category = "/api/v1/admin/master-data/categories";
+  static const String users = "/api/v1/admin/master-data/users";
+  static const String outlet = "/api/v1/admin/master-data/outlet";
 
   static const String baseUrl = "http://api.susumaktam.com";
   static const String login = "/login";

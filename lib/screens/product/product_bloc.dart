@@ -128,5 +128,26 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       }
     }
 
+    //cups
+    if (event is GetCups) {
+      try {
+        yield GetProductLoading();
+        List<ProductItem>? items = await repository.getCups();
+        yield GetProductSuccess(items: items);
+      } catch (e) {
+        yield FailedState("Gagal mengambil list produk, silahkan refresh ulang. ",0);
+      }
+    }
+
+    //cups
+    if (event is GetSpices) {
+      try {
+        yield GetProductLoading();
+        List<ProductItem>? items = await repository.getSpices();
+        yield GetProductSuccess(items: items);
+      } catch (e) {
+        yield FailedState("Gagal mengambil list produk, silahkan refresh ulang. ",0);
+      }
+    }
   }
 }

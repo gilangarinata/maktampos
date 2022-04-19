@@ -78,3 +78,16 @@ class DeleteCategory extends ProductEvent {
 }
 
 
+class GetCups extends ProductEvent {
+  @override
+  List<Object> get props => [];
+
+  GetCups();
+}
+
+class GetSpices extends ProductEvent {
+  @override
+  List<Object> get props => [];
+
+  GetSpices();
+}

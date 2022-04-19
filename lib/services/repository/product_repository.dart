@@ -30,10 +30,17 @@ abstract class ProductRepository {
   Future<bool> updateProduct(ProductParam param);
   Future<bool> deleteProduct(int id);
 
+  //categories
   Future<List<CategoryItem>?> getCategories();
   Future<bool> createCategory(CategoryParam param);
   Future<bool> deleteCategory(int id);
   Future<bool> updateCategory(CategoryParam param);
+
+  //cups
+  Future<List<ProductItem>?> getCups();
+
+  //spices
+  Future<List<ProductItem>?> getSpices();
 }
 
 class ProductRepositoryImpl extends ProductRepository {
@@ -286,6 +293,54 @@ class ProductRepositoryImpl extends ProductRepository {
     } on DioError catch (ex) {
       var statusCode = ex.response?.statusCode ?? -4;
       var statusMessage = ex.message;
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<List<ProductItem>?> getCups() async {
+    try {
+      final response = await _dioClient.get(Constant.products,);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var productResponse = ProductResponse.fromJson(response.data)
+            .items
+            ?.where((element) => element.type == Type.OUTLET_ITEM && element.categoryId == VarConstants.CATEGORY_ID_CUPS).toList();
+        return productResponse;
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      print("gilang" + statusMessage);
+      throw ClientErrorException(statusMessage, statusCode);
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  @override
+  Future<List<ProductItem>?> getSpices() async{
+    try {
+      final response = await _dioClient.get(Constant.products,);
+      var statusCode = response.statusCode ?? -1;
+      var statusMessage = response.statusMessage ?? "Unknown Error";
+      if (statusCode == Constant.successCode) {
+        var productResponse = ProductResponse.fromJson(response.data)
+            .items
+            ?.where((element) => element.type == Type.OUTLET_ITEM && element.categoryId == VarConstants.CATEGORY_ID_SPICES).toList();
+        return productResponse;
+      } else {
+        throw ClientErrorException(statusMessage, statusCode);
+      }
+    } on DioError catch (ex) {
+      var statusCode = ex.response?.statusCode ?? -4;
+      var statusMessage = ex.message;
+      print("gilang" + statusMessage);
       throw ClientErrorException(statusMessage, statusCode);
     } catch (e) {
       throw Exception(e);

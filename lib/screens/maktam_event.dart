@@ -1,0 +1,49 @@
+import 'package:equatable/equatable.dart';
+import 'package:pos_admin/services/param/category_param.dart';
+import 'package:pos_admin/services/param/inventory_param.dart';
+import 'package:pos_admin/services/param/product_param.dart';
+import 'package:pos_admin/services/param/user_param.dart';
+
+abstract class MaktamEvent extends Equatable {}
+
+class GetUsers extends MaktamEvent {
+  @override
+  List<Object> get props => [];
+
+  GetUsers();
+}
+
+class CreateUsers extends MaktamEvent {
+  UserParam param;
+
+  @override
+  List<Object> get props => [];
+
+  CreateUsers(this.param);
+}
+
+class UpdateUsers extends MaktamEvent {
+  UserParam param;
+
+  @override
+  List<Object> get props => [];
+
+  UpdateUsers(this.param);
+}
+
+class DeleteUser extends MaktamEvent {
+  int id;
+
+  @override
+  List<Object> get props => [];
+
+  DeleteUser(this.id);
+}
+
+class GetOutlets extends MaktamEvent {
+  @override
+  List<Object> get props => [];
+
+  GetOutlets();
+}
+

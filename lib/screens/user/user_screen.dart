@@ -4,24 +4,18 @@ import 'package:intl/intl.dart';
 import 'package:pos_admin/components/progress_loading.dart';
 import 'package:pos_admin/components/side_menu.dart';
 import 'package:pos_admin/res/my_colors.dart';
+import 'package:pos_admin/screens/cup/components/create_cup_dialog.dart';
 
 import 'package:pos_admin/screens/email/email_screen.dart';
 import 'package:pos_admin/screens/main/components/email_card.dart';
-import 'package:pos_admin/screens/product/components/create_product_dialog.dart';
-import 'package:pos_admin/screens/product/product_bloc.dart';
-import 'package:pos_admin/screens/product/product_event.dart';
-import 'package:pos_admin/screens/product/product_state.dart';
-import 'package:pos_admin/services/param/inventory_param.dart';
-import 'package:pos_admin/services/responses/subcategory_response.dart';
-import 'package:pos_admin/services/responses/material_item_response.dart';
-import 'package:pos_admin/services/responses/product_response.dart';
-import 'package:pos_admin/services/responses/stock_response.dart';
-import 'package:pos_admin/services/responses/summary_response.dart';
+import 'package:pos_admin/screens/maktam_bloc.dart';
+import 'package:pos_admin/screens/maktam_event.dart';
+import 'package:pos_admin/screens/maktam_state.dart';
+import 'package:pos_admin/screens/user/components/create_user_dialog.dart';
+import 'package:pos_admin/services/responses/outlet_response.dart';
+import 'package:pos_admin/services/responses/user_response.dart';
 import 'package:pos_admin/utils/my_snackbar.dart';
-import 'package:pos_admin/utils/number_utils.dart';
-import 'package:pos_admin/utils/screen_utils.dart';
-import 'package:websafe_svg/websafe_svg.dart';
-import 'package:pos_admin/models/Email.dart';
+
 
 import '../../../constants.dart';
 import '../../../responsive.dart';
@@ -29,9 +23,9 @@ import '../../../responsive.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class ProductScreen extends StatefulWidget {
+class UserScreen extends StatefulWidget {
   // Press "Command + ."
-  const ProductScreen({
+  const UserScreen({
     Key? key,
   }) : super(key: key);
 
@@ -39,91 +33,72 @@ class ProductScreen extends StatefulWidget {
   _ProductScreenState createState() => _ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _ProductScreenState extends State<UserScreen> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late ProductBloc bloc;
+  late MaktamBloc bloc;
 
-  bool _getProductIsLoading = true;
-  bool _getCategoriesIsLoading = true;
-  bool _createProductLoading = true;
-  List<ProductItem> _productItems = [];
-  List<SubcategoryItem> _categoryItems = [];
+  bool _getUserIsLoading = true;
+  List<UserResponse> _userItems = [];
+  List<OutletItem> _outletItems = [];
 
   late Dialog createDialog;
-
 
   @override
   void initState() {
     super.initState();
     initDialog();
-    bloc = BlocProvider.of<ProductBloc>(context);
+    bloc = BlocProvider.of<MaktamBloc>(context);
     getData();
   }
 
   void initDialog(){
     createDialog = Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), //this right here
-      child: CreateProductDialog(
-        categoryItems: _categoryItems,
+      child: CreateUserDialog(
+        outletItems: _outletItems,
       ),
     );
   }
 
   void getData(){
-    bloc.add(GetProducts());
-    bloc.add(GetSubcategories());
+    bloc.add(GetUsers());
+    bloc.add(GetOutlets());
   }
 
-  void blocListener(BuildContext context, ProductState state) async {
-    if (state is GetProductLoading) {
+  void blocListener(BuildContext context, MaktamState state) async {
+    if (state is GetUserLoading) {
       setState(() {
-        _getProductIsLoading = true;
+        _getUserIsLoading = true;
       });
-    }else if (state is GetSubcategoryLoading) {
+    }else if (state is GetOutletLoading) {
       setState(() {
-        _getCategoriesIsLoading = true;
+        _getUserIsLoading = true;
       });
-    }else if (state is CreateProductDialog) {
-      setState(() {
-        _createProductLoading = true;
-      });
-    }  else if (state is GetProductSuccess) {
+    } else if (state is GetUserSuccess) {
       /*
-        Get products
+        Get users
        */
       setState(() {
-        _getProductIsLoading = false;
-        _productItems = state.items ?? [];
+        _getUserIsLoading = false;
+        _userItems = state.items ?? [];
       });
-    }else if (state is GetSubategoriesSuccess) {
+    }else if (state is GetOutletsSuccess) {
       /*
-        Get categories
+        Get outlet
        */
       setState(() {
-        _getCategoriesIsLoading = false;
-        _categoryItems = state.items ?? [];
-        initDialog();
+        _getUserIsLoading = false;
+        _outletItems = state.items ?? [];
       });
-    } else if (state is CreateProductSuccess) {
-      /*
-        create product
-       */
+      initDialog();
+    } else if (state is InitialState) {
       setState(() {
-        _createProductLoading = false;
-        getData();
-      });
-    }   else if (state is InitialState) {
-      setState(() {
-        _getProductIsLoading = true;
-        _getCategoriesIsLoading = true;
-        _createProductLoading = true;
+        _getUserIsLoading = true;
       });
     } else if (state is FailedState) {
       setState(() {
-        _getProductIsLoading = false;
-        _getCategoriesIsLoading = false;
-        _createProductLoading = false;
+        _getUserIsLoading = false;
       });
       if (state.code == 401) {
         MySnackbar(context)
@@ -145,7 +120,7 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 3,
                 child: Text(
-                  "Nama",
+                  "Username",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14,
@@ -156,7 +131,7 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  "Harga",
+                  "Outlet",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14,
@@ -167,7 +142,7 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  "Kategori",
+                  "Posisi",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14,
@@ -184,17 +159,19 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   List<Widget> generateTable(BuildContext context){
-    List<Widget> sellingItems = _productItems.map((product) => InkWell(
+    List<Widget> sellingItems = _userItems.map((user) => InkWell(
       onTap: (){
         Dialog editDialog = Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)), //this right here
-          child: CreateProductDialog(
-            categoryItems: _categoryItems,
-            productItem: product,
+          child: CreateUserDialog(
+            userItem: user,
+            outletItems: _outletItems,
           ),
         );
 
-        showDialog(context: context, builder: (BuildContext context) => editDialog);
+        showDialog(context: context, builder: (BuildContext context) => editDialog).then((value) {
+          if(value == 200)  getData();
+        });
       },
       child: Column(
         children: [
@@ -203,7 +180,7 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 3,
                 child: Text(
-                  product.name  ?? "-",
+                  user.username  ?? "-",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14
@@ -213,7 +190,7 @@ class _ProductScreenState extends State<ProductScreen> {
               Expanded(
                 flex: 2,
                 child: Text(
-                  NumberUtils.toRupiah(product.price?.toDouble() ?? 0.0)  ?? "",
+                  user.outletName ?? "-",
                   style: Theme.of(context).textTheme.caption?.copyWith(
                       color: MyColors.grey_80,
                       fontSize: 14
@@ -222,13 +199,11 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               Expanded(
                 flex: 2,
-                child: Center(
-                  child: Text(
-                    product.categoryName ?? "-",
-                    style: Theme.of(context).textTheme.caption?.copyWith(
-                        color: MyColors.grey_80,
-                        fontSize: 14
-                    ),
+                child: Text(
+                  user.roleName ?? "-",
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: MyColors.grey_80,
+                      fontSize: 14
                   ),
                 ),
               ),
@@ -237,7 +212,7 @@ class _ProductScreenState extends State<ProductScreen> {
           const Divider(height: 30,),
         ],
       ),
-    )).toList();
+    )).toList() ?? [];
 
     sellingItems.insert(0,buildTableHeader(context));
     return sellingItems;
@@ -249,9 +224,9 @@ class _ProductScreenState extends State<ProductScreen> {
       key: _scaffoldKey,
       drawer: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 250),
-        child: const SideMenu(currentPage: "product",),
+        child: const SideMenu(currentPage: "user",),
       ),
-      body : BlocListener<ProductBloc, ProductState>(
+      body : BlocListener<MaktamBloc, MaktamState>(
         child: Container(
           padding: EdgeInsets.only(top: kDefaultPadding),
           color: kBgDarkColor,
@@ -275,7 +250,7 @@ class _ProductScreenState extends State<ProductScreen> {
                         ),
                       SizedBox(width: 15),
                       Text(
-                        "Produk",
+                        "Pengguna",
                         style: Theme.of(context).textTheme.caption?.copyWith(
                             color: MyColors.grey_80,
                             fontSize: 16
@@ -286,7 +261,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
                 const SizedBox(height: kDefaultPadding),
                 Expanded(
-                  child: _getProductIsLoading ? ProgressLoading() :  Padding(
+                  child: _getUserIsLoading ? ProgressLoading() :  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: RefreshIndicator(
                       onRefresh: () async {
@@ -306,7 +281,9 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          showDialog(context: context, builder: (BuildContext context) => createDialog);
+          showDialog(context: context, builder: (BuildContext context) => createDialog).then((value) {
+            if(value == 200) getData();
+          });
         },
         child: const Icon(Icons.add),
       ),

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pos_admin/components/progress_loading.dart';
 import 'package:pos_admin/extensions.dart';
 import 'package:pos_admin/res/my_colors.dart';
+import 'package:pos_admin/res/var_constants.dart';
+import 'package:pos_admin/screens/product/product_bloc.dart';
 import 'package:pos_admin/screens/product/product_event.dart';
 import 'package:pos_admin/screens/product/product_state.dart';
 import 'package:pos_admin/services/param/product_param.dart';
@@ -14,41 +16,31 @@ import 'package:collection/collection.dart';
 
 
 import '../../../constants.dart';
-import '../product_bloc.dart';
 
-class CreateProductDialog extends StatefulWidget {
-  const CreateProductDialog({Key? key, required this.categoryItems, this.productItem}) : super(key: key);
+class CreateCupDialog extends StatefulWidget {
+  const CreateCupDialog({Key? key, this.productItem, required this.isCup}) : super(key: key);
 
-
-  final List<SubcategoryItem> categoryItems;
   final ProductItem? productItem;
+  final bool isCup;
 
   @override
-  State<CreateProductDialog> createState() => _CreateProductDialogState();
+  State<CreateCupDialog> createState() => _CreateProductDialogState();
 }
 
-class _CreateProductDialogState extends State<CreateProductDialog> {
+class _CreateProductDialogState extends State<CreateCupDialog> {
 
   SubcategoryItem? _selectedItems;
-  late TextEditingController _categoryController;
   late TextEditingController _nameController;
-  late TextEditingController _priceListController;
   bool _createProductLoading = false;
   bool _deleteProductLoading = false;
   bool? nameIsValid;
-  bool? priceIsValid;
-  bool? categoryIsValid;
 
   late ProductBloc bloc;
 
   @override
   void initState() {
     super.initState();
-    _selectedItems = widget.categoryItems.firstWhereOrNull((element) => element.id == widget.productItem?.subcategoryId);
-    _categoryController = TextEditingController(text: _selectedItems?.categoryName);
     _nameController = TextEditingController(text: widget.productItem?.name);
-    _priceListController = TextEditingController(text : widget.productItem?.price?.toString());
-
     bloc = BlocProvider.of<ProductBloc>(context);
   }
 
@@ -69,7 +61,7 @@ class _CreateProductDialogState extends State<CreateProductDialog> {
         _createProductLoading = false;
         _deleteProductLoading = false;
       });
-      Navigator.pop(context);
+      Navigator.pop(context, 200);
     }   else if (state is InitialState) {
       setState(() {
         _createProductLoading = false;
@@ -94,33 +86,6 @@ class _CreateProductDialogState extends State<CreateProductDialog> {
 
   @override
   Widget build(BuildContext context) {
-    var categoryDialog = AlertDialog(
-        title: Text("Select one country"),
-        content: SingleChildScrollView(
-          child: Container(
-            width: double.infinity,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: widget.categoryItems
-                  .map((e) => RadioListTile(
-                title: Text(e.categoryName ?? ""),
-                value: e,
-                groupValue: _selectedItems,
-                selected: _selectedItems == e,
-                onChanged: (value) {
-                  if (value != _selectedItems) {
-                    setState(() {
-                      _selectedItems = value as SubcategoryItem;
-                    });
-                    _categoryController.text = _selectedItems?.categoryName ?? "";
-                    Navigator.of(context).pop();
-                  }
-                },
-              ))
-                  .toList(),
-            ),
-          ),
-        ));
     return BlocListener<ProductBloc, ProductState>(
       listener: blocListener,
       child: Container(
@@ -132,7 +97,7 @@ class _CreateProductDialogState extends State<CreateProductDialog> {
               children: [
                 Expanded(
                   child: Text(
-                    "Tambah Produk",
+                    widget.isCup ? "Tambah Cup" : "Tambah Bumbu",
                     style: Theme.of(context).textTheme.caption?.copyWith(
                         color: MyColors.grey_80,
                         fontSize: 16
@@ -154,64 +119,13 @@ class _CreateProductDialogState extends State<CreateProductDialog> {
               },
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                hintText: "Nama Produk",
+                hintText: "Nama",
                 filled: true,
                 errorText: nameIsValid == false ? "Tidak Boleh Kosong" : null,
                 fillColor: Colors.transparent,
                 border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                   // borderSide: BorderSide.,
-                ),
-              ),
-            ),
-            SizedBox(height: 20,),
-            TextField(
-              controller: _priceListController,
-              onChanged: (value) {
-                setState(() {
-                  priceIsValid = value.isNotEmpty;
-                });
-              },
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                errorText: priceIsValid == false ? "Tidak Boleh Kosong" : null,
-                hintText: "Harga",
-                fillColor: Colors.transparent,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  // borderSide: BorderSide.,
-                ),
-              ),
-            ),
-            SizedBox(height: 20,),
-            InkWell(
-              onTap: (){
-                showDialog<void>(context: context, builder: (context) => categoryDialog);
-              },
-              child: TextField(
-                controller: _categoryController,
-                enabled: false,
-                onChanged: (value) {
-                  setState(() {
-                    categoryIsValid = value.isNotEmpty;
-                  });
-                },
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  errorText: categoryIsValid == false ? "Tidak Boleh Kosong" : null,
-                  hintText: "Kategori",
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  hintStyle: TextStyle(color: MyColors.grey_60),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                    // borderSide: BorderSide.,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                    // borderSide: BorderSide.,
-                  ),
                 ),
               ),
             ),
@@ -225,29 +139,17 @@ class _CreateProductDialogState extends State<CreateProductDialog> {
                 color: kPrimaryColor,
                 onPressed: () {
                   var productName = _nameController.text.toString();
-                  var price = int.tryParse(_priceListController.text.toString());
-                  var subcategoryId = _selectedItems?.id;
+                  var price = 0;
+                  var subcategoryId = widget.isCup ? VarConstants.SUBCATEGORY_ID_CUPS : VarConstants.SUBCATEGORY_ID_SPICES;
+
+
                   if(productName.isEmpty){
                     setState(() {
                       nameIsValid = false;
                     });
                     return;
                   }
-                  if(price == null){
-                    setState(() {
-                      priceIsValid = false;
-                    });
-                    return;
-                  }
-                  if(subcategoryId == null){
-                    setState(() {
-                      categoryIsValid = false;
-                    });
-                    return;
-                  }
                   setState(() {
-                    priceIsValid = true;
-                    categoryIsValid = true;
                     nameIsValid = true;
                   });
                   var productParam = ProductParam(productName, subcategoryId, price, widget.productItem?.id);

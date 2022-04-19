@@ -1,0 +1,80 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:pos_admin/screens/maktam_event.dart';
+import 'package:pos_admin/screens/maktam_state.dart';
+import 'package:pos_admin/services/network_exception.dart';
+import 'package:pos_admin/services/repository/maktam_repository.dart';
+import 'package:pos_admin/services/responses/outlet_response.dart';
+import 'package:pos_admin/services/responses/user_response.dart';
+
+class MaktamBloc extends Bloc<MaktamEvent, MaktamState> {
+  MaktamRepository repository;
+
+  MaktamBloc(this.repository) : super(InitialState());
+
+  @override
+  Stream<MaktamState> mapEventToState(MaktamEvent event) async* {
+    if (event is GetUsers) {
+      try {
+        yield GetUserLoading();
+        List<UserResponse>? items = await repository.getUsers();
+        yield GetUserSuccess(items: items);
+      } catch (e) {
+        yield FailedState("Gagal mengambil list produk, silahkan refresh ulang. ",0);
+      }
+    }
+
+    if (event is GetOutlets) {
+      try {
+        yield GetOutletLoading();
+        List<OutletItem>? items = await repository.getOutlets();
+        yield GetOutletsSuccess(items);
+      } catch (e) {
+        yield FailedState("Gagal mengambil list produk, silahkan refresh ulang. ",0);
+      }
+    }
+
+    if (event is DeleteUser) {
+      try {
+        yield DeleteUserLoading();
+        bool isSuccess = await repository.deleteUser(event.id);
+        if(isSuccess){
+          yield DeleteUserSuccess();
+        }else{
+          yield FailedState("Gagal hapus user",0);
+        }
+      } catch (e) {
+        yield FailedState("Gagal mengambil list produk, silahkan refresh ulang. ",0);
+      }
+    }
+
+    if (event is CreateUsers) {
+      try {
+        yield CreateUserLoading();
+        await repository.createUser(event.param);
+        yield CreateUserSuccess();
+      } catch (e) {
+        if(e is ClientErrorException){
+          yield FailedState("Gagal membuat user ${e.message} ",e.code);
+        }else{
+          yield FailedState("Gagal membuat user ",0);
+        }
+      }
+    }
+
+    if (event is UpdateUsers) {
+      try {
+        yield CreateUserLoading();
+        await repository.updateUser(event.param);
+        yield CreateUserSuccess();
+      } catch (e) {
+        if(e is ClientErrorException){
+          yield FailedState("${e.message} ",e.code);
+        }else{
+          yield FailedState("Gagal membuat user ",0);
+        }
+      }
+    }
+
+  }
+}
